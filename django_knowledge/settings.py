@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django_knowledge',
     'custom_auth',
     'rest_framework',
+    'drf_spectacular',
     'note',
     'pages',
     'faci',
@@ -86,6 +87,17 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API сервера базы знаний',
+    'DESCRIPTION': 'Сервер предоставляет доступ к манипулированию заметками',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # KNOWLEDGE

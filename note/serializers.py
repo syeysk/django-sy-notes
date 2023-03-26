@@ -1,9 +1,14 @@
+from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 
 class NoteAddViewSerializer(serializers.Serializer):
-    content = serializers.CharField(max_length=20000)
+    content = serializers.CharField(max_length=20000, required=True)
 
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_content(self, _):
+        return 'содержимое заметки'
 
 class NoteEditViewSerializer(serializers.Serializer):
     new_title = serializers.CharField(max_length=255, required=False)
