@@ -1,7 +1,7 @@
 from urllib.parse import unquote
 
 from django.conf import settings
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from rest_framework.response import Response
@@ -9,7 +9,11 @@ from rest_framework.views import APIView
 
 from note.load_from_github import prepare_to_search, get_uploader, get_root_url
 from note.credentials import args_uploader
-from note.serializers import NoteAddViewSerializer, NoteEditViewSerializer
+from note.serializers import (
+    NoteAddViewSerializer,
+    NoteEditViewSerializer,
+    NoteResponseSerializer,
+)
 
 
 source_parametr = OpenApiParameter(
@@ -18,7 +22,12 @@ source_parametr = OpenApiParameter(
     required=False,
     type=str,
     default=settings.DEFAULT_UPLOADER,
-    location=OpenApiParameter.QUERY
+    location=OpenApiParameter.QUERY,
+    examples=[
+        OpenApiExample('Firestore', value='firestore'),
+        OpenApiExample('Typesense', value='typesense'),
+        OpenApiExample('This django server', value='django_server'),
+    ]
 )
 
 
@@ -30,6 +39,8 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя запрашиваемой заметки', location=OpenApiParameter.PATH),
         ],
+        responses={200: NoteResponseSerializer},
+        tags=['Заметки'],
     )
     def get(self, request, title):
         """Метод получения заметки"""
@@ -48,6 +59,8 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя создаваемой заметки', location=OpenApiParameter.PATH),
         ],
+        responses={200: NoteResponseSerializer},
+        tags=['Заметки'],
     )
     def post(self, request, title):
         """Метод создания новой заметки"""
@@ -74,6 +87,8 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя редактируемой заметки', location=OpenApiParameter.PATH),
         ],
+        responses={200: NoteResponseSerializer},
+        tags=['Заметки'],
     )
     def put(self, request, title):
         """

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.views import View
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -19,6 +20,9 @@ from note.credentials import args_uploader
 from note.models import Note
 
 
+@extend_schema(
+    tags=['Заметки'],
+)
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
 def note_search(request, query):
@@ -63,6 +67,9 @@ def note_search(request, query):
     return Response(status=status.HTTP_200_OK, data=data)
 
 
+@extend_schema(
+    tags=['Заметки'],
+)
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
 def note_hook(request):

@@ -19,3 +19,10 @@ class NoteEditViewSerializer(serializers.Serializer):
             raise serializers.ValidationError("required new_title or new_content, or both")
 
         return data
+
+
+class NoteResponseSerializer(serializers.Serializer):
+    """Сериализатор успешного ответа"""
+    content = serializers.CharField(max_length=20000)
+    title = serializers.CharField(max_length=255)
+    source = serializers.CharField(max_length=20)
