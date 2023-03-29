@@ -15,56 +15,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import prepare_to_search, get_uploader, get_root_url
-from note.credentials import args_uploader
+from note.load_from_github import prepare_to_search, get_root_url
 from note.models import Note
-
-
-@extend_schema(
-    tags=['Заметки'],
-)
-@api_view(('GET',))
-@renderer_classes((JSONRenderer,))
-def note_search(request, query):
-    """Метод для поиска заметок"""
-    query = unquote(query)
-
-    search_by = request.GET.get('search-by', 'all')
-    if search_by not in ('content', 'title', 'all'):
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `search-by` parameter'})
-
-    fields = request.GET.get('fields', 'title')
-    if fields not in ('content', 'title', 'all'):
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `fields` parameter'})
-
-    operator = request.GET.get('operator', 'or')
-    if operator not in ('or', 'and'):
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `operator` parameter'})
-
-    limit = int(request.GET.get('limit', '10'))
-    if not (100 >= limit > 0):
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `limit` parameter'})
-
-    offset = int(request.GET.get('offset', '0'))
-    if not (offset >= 0):
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `offset` parameter'})
-
-    file_name = query if search_by in ('title', 'all') else None
-    file_content = query if search_by in ('content', 'all') else None
-    fields = ('title', 'content') if fields == 'all' else (fields,)
-    uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
-    uploader = get_uploader(uploader_name, args_uploader[uploader_name])
-    data = uploader.search(
-        operator=operator,
-        limit=limit,
-        offset=offset,
-        fields=fields,
-        file_name=file_name,
-        file_content=file_content,
-    )
-    data['source'] = uploader_name
-    data['path'] = '{}/'.format(get_root_url())
-    return Response(status=status.HTTP_200_OK, data=data)
 
 
 @extend_schema(

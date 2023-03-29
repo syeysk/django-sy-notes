@@ -3,6 +3,43 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 
+class NoteSearchViewSerializer(serializers.Serializer):
+    FIELD_ALL = 'all'
+    FIELD_TITLE = 'title'
+    FIELD_CONTENT = 'content'
+    FIELDS_CHOICES = (
+        (FIELD_ALL, 'оба поля'),
+        (FIELD_TITLE, 'имя заметки'),
+        (FIELD_CONTENT, 'тело заметки'),
+    )
+
+    SEARCH_BY_ALL = 'all'
+    SEARCH_BY_TITLE = 'title'
+    SEARCH_BY_CONTENT = 'content'
+    SEARCH_BYS_CHOICES = (
+        (SEARCH_BY_ALL, 'оба поля'),
+        (SEARCH_BY_TITLE, 'имя заметки'),
+        (SEARCH_BY_CONTENT, 'тело заметки'),
+    )
+
+    OPERATOR_OR = 'or'
+    OPERATOR_AND = 'and'
+    OPERATORS_CHOICES = (
+        (OPERATOR_OR, 'или'),
+        (OPERATOR_AND, 'и'),
+    )
+    fields = serializers.ChoiceField(required=False, default=FIELD_TITLE, choices=FIELDS_CHOICES, help_text='Возвращаемые поля')
+    operator = serializers.ChoiceField(required=False, default=OPERATOR_OR, choices=OPERATORS_CHOICES, help_text='Логический оператор поиска по полям')
+    limit = serializers.IntegerField(min_value=1, max_value=100,  help_text='Количество результатов на странице', required=False, default=10)
+    offset = serializers.IntegerField(min_value=0, help_text='Смещение результатов', required=False, default=0)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.update(
+            {'search-by': serializers.ChoiceField(required=False, default=self.SEARCH_BY_ALL, choices=self.SEARCH_BYS_CHOICES, help_text='Поиск по полям')}
+        )
+
+
 class NoteAddViewSerializer(serializers.Serializer):
     content = serializers.CharField(max_length=20000, required=True)
 

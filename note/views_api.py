@@ -13,12 +13,12 @@ from note.serializers import (
     NoteAddViewSerializer,
     NoteEditViewSerializer,
     NoteResponseSerializer,
+    NoteSearchViewSerializer,
 )
-
 
 source_parametr = OpenApiParameter(
     name='source',
-    description='источник заметок',
+    description='Название базы',
     required=False,
     type=str,
     default=settings.DEFAULT_UPLOADER,
@@ -29,6 +29,57 @@ source_parametr = OpenApiParameter(
         OpenApiExample('This django server', value='django_server'),
     ]
 )
+
+query_parametr = OpenApiParameter(
+    name='query',
+    description='URL-кодированая (уникальная) строка',
+    required=False,
+    type=str,
+    location=OpenApiParameter.PATH,
+    examples=[
+        OpenApiExample('пример', value='page%2Fname')
+    ]
+)
+
+
+
+class NoteSearchView(APIView):
+    """Класс метода поиска заметок"""
+
+    @extend_schema(
+        tags=['Заметки'],
+        parameters=[
+            source_parametr,
+            NoteSearchViewSerializer,
+            query_parametr,
+        ],
+    )
+    def get(self, request, query):
+        """Метод для поиска заметок"""
+        serializer = NoteSearchViewSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+    
+        query = unquote(query)
+        search_by = data['search-by']
+        fields = data['fields']
+        file_name = query if search_by in ('title', 'all') else None
+        file_content = query if search_by in ('content', 'all') else None
+        fields = ('title', 'content') if fields == 'all' else (fields,)
+    
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        response_data = uploader.search(
+            operator=data['operator'],
+            limit=data['limit'],
+            offset=data['offset'],
+            fields=fields,
+            file_name=file_name,
+            file_content=file_content,
+        )
+        response_data['source'] = uploader_name
+        response_data['path'] = '{}/'.format(get_root_url())
+        return Response(status=status.HTTP_200_OK, data=response_data)
 
 
 class NoteView(APIView):
@@ -115,3 +166,22 @@ class NoteView(APIView):
         note_data = uploader.edit(title, new_title, data.get('new_content'))
         note_data['source'] = uploader_name
         return Response(status=status.HTTP_200_OK, data=note_data)
+
+    @extend_schema(
+        parameters=[
+            source_parametr,
+            OpenApiParameter(name='title', description='имя удаляемой заметки', location=OpenApiParameter.PATH),
+        ],
+        responses={201: None},
+        tags=['Заметки'],
+    )
+    def delete(self, request, title):
+        """Метод удаления заметки"""
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        note_data = uploader.get(title=unquote(title))
+        if not note_data:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        uploader.delete(title)
+        return Response(status=status.HTTP_201_NoContent)

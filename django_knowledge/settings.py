@@ -97,7 +97,10 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'API сервера базы знаний',
     'DESCRIPTION': 'Сервер предоставляет доступ к манипулированию заметками',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_INCLUDE_SCHEMA': True,
+    'SCHEMA_PATH_PREFIX_INSERT': 'api',
+    #'SCHEMA_PATH_PREFIX': '/api/v[0-9]',
+    'SERVE_URLCONF': 'django_knowledge.urls_api',
 }
 
 # KNOWLEDGE
