@@ -98,7 +98,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя запрашиваемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={200: NoteResponseSerializer, 404: 'Not found'},
+        responses={200: NoteResponseSerializer, 404: None},
         tags=['Заметки'],
     )
     def get(self, request, title):
@@ -146,7 +146,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя редактируемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={201: None, 404: 'Not found'},
+        responses={201: None, 404: None},
         tags=['Заметки'],
     )
     def put(self, request, title):
@@ -180,7 +180,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя удаляемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={201: None, 404: 'Not found'},
+        responses={201: None, 404: None},
         tags=['Заметки'],
     )
     def delete(self, request, title):
