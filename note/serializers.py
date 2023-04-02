@@ -47,9 +47,10 @@ class NoteAddViewSerializer(serializers.Serializer):
     def get_content(self, _):
         return 'содержимое заметки'
 
+
 class NoteEditViewSerializer(serializers.Serializer):
-    new_title = serializers.CharField(max_length=255, required=False)
-    new_content = serializers.CharField(max_length=20000, required=False)
+    new_title = serializers.CharField(max_length=255, required=False, help_text='Новое имя заметки')
+    new_content = serializers.CharField(max_length=20000, required=False, help_text='Новое содержимое заметки')
 
     def validate(self, data):
         if not data.get('new_title') and not data.get('new_content'):
@@ -60,6 +61,22 @@ class NoteEditViewSerializer(serializers.Serializer):
 
 class NoteResponseSerializer(serializers.Serializer):
     """Сериализатор успешного ответа"""
-    content = serializers.CharField(max_length=20000)
-    title = serializers.CharField(max_length=255)
-    source = serializers.CharField(max_length=20)
+    content = serializers.CharField(max_length=20000, help_text='Содержимое заметки')
+    title = serializers.CharField(max_length=255, help_text='Имя заметки')
+    source = serializers.CharField(max_length=20, help_text='Название базы')
+
+
+class NoteSearchNoteResponseSerializer(serializers.Serializer):
+    """Сериализатор заметки"""
+    content = serializers.CharField(max_length=20000, help_text='Содержимое заметки. Наличие поля зависит от параметра `fields`')
+    title = serializers.CharField(max_length=255, help_text='Имя заметки. Наличие поля зависит от параметра `fields`')
+
+
+class NoteSearchResponseSerializer(serializers.Serializer):
+    """Сериализатор результатов поиска заметки"""
+    count = serializers.IntegerField(min_value=0, help_text='Количество всех найденных заметок')
+    limit = serializers.IntegerField(min_value=1, max_value=100,  help_text='Количество результатов на странице')
+    offset = serializers.IntegerField(min_value=0, help_text='Смещение результатов')
+    source = serializers.CharField(max_length=20, help_text='Название базы')
+    path = serializers.CharField(max_length=100, help_text='Путь к заметке на Github-хранилище')
+    results = NoteSearchNoteResponseSerializer()

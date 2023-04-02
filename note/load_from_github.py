@@ -238,6 +238,9 @@ class UploaderDjangoServer:
         note.save()
         return {'title': note.title, 'content': note.content}
 
+    def delete(self, title):
+        note = Note.objects.get(title=title)
+        note.delete()
 
 def get_class_name(camel_case):
     return 'Uploader{}'.format(camel_case.title().replace('_', ''))

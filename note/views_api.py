@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from custom_auth.authentication import TokenAuthentication
 from note.load_from_github import prepare_to_search, get_uploader, get_root_url
 from note.credentials import args_uploader
 from note.serializers import (
@@ -14,6 +15,7 @@ from note.serializers import (
     NoteEditViewSerializer,
     NoteResponseSerializer,
     NoteSearchViewSerializer,
+    NoteSearchResponseSerializer,
 )
 
 source_parametr = OpenApiParameter(
@@ -37,7 +39,7 @@ query_parametr = OpenApiParameter(
     type=str,
     location=OpenApiParameter.PATH,
     examples=[
-        OpenApiExample('пример', value='page%2Fname')
+        OpenApiExample('пример', value='page name')
     ]
 )
 
@@ -53,13 +55,16 @@ class NoteSearchView(APIView):
             NoteSearchViewSerializer,
             query_parametr,
         ],
+        responses={200: NoteSearchResponseSerializer},
     )
     def get(self, request, query):
         """Метод для поиска заметок"""
         serializer = NoteSearchViewSerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-    
+
+        limit = data['limit']
+        offset = data['offset']
         query = unquote(query)
         search_by = data['search-by']
         fields = data['fields']
@@ -71,12 +76,14 @@ class NoteSearchView(APIView):
         uploader = get_uploader(uploader_name, args_uploader[uploader_name])
         response_data = uploader.search(
             operator=data['operator'],
-            limit=data['limit'],
-            offset=data['offset'],
+            limit=limit,
+            offset=offset,
             fields=fields,
             file_name=file_name,
             file_content=file_content,
         )
+        response_data['limit'] = limit
+        response_data['offset'] = offset
         response_data['source'] = uploader_name
         response_data['path'] = '{}/'.format(get_root_url())
         return Response(status=status.HTTP_200_OK, data=response_data)
@@ -84,13 +91,14 @@ class NoteSearchView(APIView):
 
 class NoteView(APIView):
     """Класс методов для работы с заметками"""
+    authenticate_classes = [TokenAuthentication]
 
     @extend_schema(
         parameters=[
             source_parametr,
             OpenApiParameter(name='title', description='имя запрашиваемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={200: NoteResponseSerializer},
+        responses={200: NoteResponseSerializer, 404: 'Not found'},
         tags=['Заметки'],
     )
     def get(self, request, title):
@@ -138,7 +146,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя редактируемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={200: NoteResponseSerializer},
+        responses={201: None, 404: 'Not found'},
         tags=['Заметки'],
     )
     def put(self, request, title):
@@ -147,6 +155,7 @@ class NoteView(APIView):
         
         Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
         """
+        #self.authenticate()
         serializer = NoteEditViewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -163,16 +172,15 @@ class NoteView(APIView):
             response_data = {'detail': 'Заметка с таким названием уже существует'}
             return Response(status=status.HTTP_200_OK, data=response_data)
 
-        note_data = uploader.edit(title, new_title, data.get('new_content'))
-        note_data['source'] = uploader_name
-        return Response(status=status.HTTP_200_OK, data=note_data)
+        uploader.edit(title, new_title, data.get('new_content'))
+        return Response(status=status.HTTP_201_NoContent)
 
     @extend_schema(
         parameters=[
             source_parametr,
             OpenApiParameter(name='title', description='имя удаляемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={201: None},
+        responses={201: None, 404: 'Not found'},
         tags=['Заметки'],
     )
     def delete(self, request, title):
