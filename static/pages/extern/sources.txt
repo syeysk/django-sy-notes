@@ -1,0 +1,5 @@
+- https://code.jquery.com/jquery-3.6.0.min.js
+- https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css
+- https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js
+- https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js
+- https://unpkg.com/vue@3

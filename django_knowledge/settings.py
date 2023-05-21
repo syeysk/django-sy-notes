@@ -7,6 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = environ.Env(
     DEBUG=(bool, True),
     ALLOWED_HOSTS=(list, ['*']),
+    SITE_URL=(str, 'http://127.0.0.1'),
 )
 environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
@@ -16,6 +17,7 @@ ROOT_URLCONF = 'django_knowledge.urls'
 WSGI_APPLICATION = 'django_knowledge.wsgi.application'
 STATIC_URL = '/static/'
 SITE_URL = env('SITE_URL')
+
 API_TOKEN_SALT = env('API_TOKEN_SALT')
 
 INSTALLED_APPS = [
@@ -89,6 +91,10 @@ LOGGING = {
     },
 }
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -103,7 +109,9 @@ SPECTACULAR_SETTINGS = {
     'SERVE_URLCONF': 'django_knowledge.urls_api',
 }
 
-# KNOWLEDGE
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Knowledge app
 
 GITHUB_OWNER = env('GITHUB_OWNER')
 GITHUB_REPO = env('GITHUB_REPO')
