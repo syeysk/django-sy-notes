@@ -54,6 +54,12 @@ HTTP/2 200 возвращает JSON ответ.
 
 [Документация API](https://github.com/TVP-Support/django_knowledge/wiki)
 
+## План разработки сервиса и микросервисов
+
+1. [Трансформация форка](ROADMAP_001_transformation_of_fork.md)
+2. [Улучшение сервиса и добавление новых модулей](ROADMAP_002_improvements_and_new_modules.md)
+3. [Интеграция сервиса с внешними сервисами](ROADMAP_003_integration_with_external_services.md)
+
 ## Вдохновение
 
 Источником вдохновения стали программы:
