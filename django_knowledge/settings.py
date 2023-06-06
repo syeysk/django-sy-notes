@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'note',
     'pages',
-    'faci',
 ]
 
 MIDDLEWARE = [

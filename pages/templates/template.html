@@ -8,7 +8,7 @@
     <meta name="MobileOptimized" content="320" />
     <title>Веб-сервер API базы знаний | {% block page_title %}No content{% endblock %}</title>
     <script src="{% static 'pages/extern/jquery-3.6.0.min.js' %}"></script>
-    <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous"> 
+    <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <script src="{% static 'pages/functions.js' %}?v=1"></script>
     <script src="{% static 'pages/windows.js' %}"></script>
     <link rel="stylesheet" href="{% static 'pages/windows.css' %}">
@@ -60,10 +60,6 @@
                     {% url 'note_editor' as url %}
                     <li>
                         <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Заметки</a>
-                    </li>
-                    {% url 'faci_list' as url %}
-                    <li>
-                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Встречи</a>
                     </li>
                 </ul>
             </li>
@@ -143,13 +139,13 @@
             {% endif %}
         </ul>
     </div>
-    
+
     <div class="container">
         <h1>{% block title %}No content{% endblock %}</h1>
         {% block content %}No content{% endblock %}
     </div>
 
-    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script> 
+    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
     <script>
         {% if not request.user.is_authenticated %}
             $('#btn_toggle_login_box').click(function(event) {
@@ -158,7 +154,7 @@
             $('#btn_toggle_registration_box').click(function(event) {
                 $('#registration_box').toggle();
             });
-        
+
             $('#login_button').click(function(event) {
                 $.ajax({
                     url: "{% url 'custom_login' %}",
