@@ -21,7 +21,7 @@
 Скачивание репозитория:
 
 ```sh
-git clone https://github.com/TVP-Support/django_knowledge
+git clone https://github.com/syeysk/django-sy-platform
 ```
 
 Установка зависимостей:
