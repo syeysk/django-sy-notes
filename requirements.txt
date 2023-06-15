@@ -1,9 +1,11 @@
-django==3.2.10
-GitPython==3.1.18
+django==4.2.1
 firebase==3.0.1
 firebase-admin==5.2.0
-requests==2.27.1
+GitPython==3.1.18
+requests==2.31.0
+djangorestframework==3.14.0
+django-environ==0.10.0
+drf-spectacular==0.26.2
+pytest==7.3.1
+pytest-django==4.5.2
 typesense==0.13.1
-djangorestframework==3.13.1
-django-environ==0.8.1
-drf-spectacular==0.26.1
