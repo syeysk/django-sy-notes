@@ -1,10 +1,8 @@
-import json
 import sys
 from io import StringIO
 from subprocess import check_output
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
 from django.core import management
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -43,23 +41,10 @@ class ServiceServerView(LoginRequiredMixin, APIView):
         return Response(status=status.HTTP_200_OK, data=data)
 
 
-class MapInfoResourcesView(APIView):
-    def get(self, request):
-        context = {
-        }
-        return render(request, 'pages/map_info_resources.html', context)
-
-
-class MapMaterialResourcesView(APIView):
+class IntroView(APIView):
     def get(self, request):
         context = {}
-        return render(request, 'pages/map_material_resources.html', context)
-
-
-class AboutProjectView(APIView):
-    def get(self, request):
-        context = {}
-        return render(request, 'pages/about_project.html', context)
+        return render(request, 'pages/intro.html', context)
 
 
 class ProfileView(LoginRequiredMixin, APIView):
@@ -71,7 +56,7 @@ class ProfileView(LoginRequiredMixin, APIView):
         serializer = ProfileViewSerializer(data=request.POST)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        
+
         user = request.user
         update_fields = []
         if user.first_name != data['first_name']:

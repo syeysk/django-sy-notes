@@ -2,13 +2,12 @@ from urllib.parse import unquote
 
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
-from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from custom_auth.authentication import TokenAuthentication
-from note.load_from_github import prepare_to_search, get_uploader, get_root_url
+from note.load_from_github import get_uploader, get_root_url
 from note.credentials import args_uploader
 from note.serializers import (
     NoteAddViewSerializer,
@@ -44,7 +43,6 @@ query_parametr = OpenApiParameter(
 )
 
 
-
 class NoteSearchView(APIView):
     """Класс метода поиска заметок"""
 
@@ -71,7 +69,7 @@ class NoteSearchView(APIView):
         file_name = query if search_by in ('title', 'all') else None
         file_content = query if search_by in ('content', 'all') else None
         fields = ('title', 'content') if fields == 'all' else (fields,)
-    
+
         uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
         uploader = get_uploader(uploader_name, args_uploader[uploader_name])
         response_data = uploader.search(
@@ -152,7 +150,7 @@ class NoteView(APIView):
     def put(self, request, title):
         """
         Метод редактирования существующей заметки.
-        
+
         Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
         """
         #self.authenticate()
@@ -173,7 +171,7 @@ class NoteView(APIView):
             return Response(status=status.HTTP_200_OK, data=response_data)
 
         uploader.edit(title, new_title, data.get('new_content'))
-        return Response(status=status.HTTP_201_NoContent)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         parameters=[
@@ -192,4 +190,4 @@ class NoteView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         uploader.delete(title)
-        return Response(status=status.HTTP_201_NoContent)
+        return Response(status=status.HTTP_204_NO_CONTENT)

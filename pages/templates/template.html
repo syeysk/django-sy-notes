@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="MobileOptimized" content="320" />
-    <title>Веб-сервер API базы знаний | {% block page_title %}No content{% endblock %}</title>
+    <title>Ведение заметок | {% block page_title %}No content{% endblock %}</title>
     <script src="{% static 'pages/extern/jquery-3.6.0.min.js' %}"></script>
-    <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" crossorigin="anonymous">
     <script src="{% static 'pages/functions.js' %}?v=1"></script>
     <script src="{% static 'pages/windows.js' %}"></script>
     <link rel="stylesheet" href="{% static 'pages/windows.css' %}">
@@ -41,28 +41,10 @@
             <li class="nav-item">
                 <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">О проекте</a>
             </li>
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Карта ресурсов</a>
-                <ul class="dropdown-menu">
-                    {% url 'map_info_resources' as url %}
-                    <li>
-                        <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Информационные</a>
-                    </li>
-                    {% url 'map_material_resources' as url %}
-                    <li>
-                        <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Материальные</a>
-                    </li>
-                </ul>
-            </li>
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Модули</a>
-                <ul class="dropdown-menu">
-                    {% url 'note_editor' as url %}
-                    <li>
-                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Заметки</a>
-                    </li>
-                </ul>
-            </li>
+						{% url 'note_editor' as url %}
+						<li class="nav-item">
+								<a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">Заметки</a>
+						</li>
             {# {% url 'service_server' as url %}#}
             {#<li class="nav-item">#}
             {#    <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">Обслуживание сервера</a>#}
@@ -145,7 +127,7 @@
         {% block content %}No content{% endblock %}
     </div>
 
-    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" crossorigin="anonymous"></script>
     <script>
         {% if not request.user.is_authenticated %}
             $('#btn_toggle_login_box').click(function(event) {

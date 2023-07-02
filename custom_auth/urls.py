@@ -1,5 +1,4 @@
-from django.conf.urls import url
-from django.urls import path
+from django.urls import path, re_path
 
 from custom_auth.views import (
     AddTokenView,
@@ -22,5 +21,5 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='custom_auth_tokens'),
     path('token/add', AddTokenView.as_view(), name='custom_auth_add_token'),
     path('token/edit', EditTokenView.as_view(), name='custom_auth_edit_token'),
-    url('token/delete/(?P<pk>[0-9]+)$', DeleteTokenView.as_view(), name='custom_auth_delete_token'),
+    re_path('token/delete/(?P<pk>[0-9]+)$', DeleteTokenView.as_view(), name='custom_auth_delete_token'),
 ]
