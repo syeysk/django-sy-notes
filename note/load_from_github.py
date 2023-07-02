@@ -30,7 +30,7 @@ def download_from_github_archive(owner, repo, directory):
     print('the archive is downloaded')
     with zipfile.ZipFile(archive) as archive_object:
         for member_name in archive_object.namelist():
-            if not member_name.startswith('{}-main/{}'.format(repo, directory)):
+            if not member_name.startswith('{}-main{}'.format(repo, directory)):
                 continue
 
             member_info = archive_object.getinfo(member_name)
@@ -211,13 +211,13 @@ class UploaderDjangoServer:
 
         results = list(notes[offset:limit+offset].values(*fields))
         return dict(results=results, count=count)
-        
+
     def get(self, title):
         notes = Note.objects.filter(title=title)
         if notes.exists():
             note = notes[0]
             return {'title': note.title, 'content': note.content}
-        
+
         return None
 
     def add(self, title, content):
@@ -242,13 +242,10 @@ class UploaderDjangoServer:
         note = Note.objects.get(title=title)
         note.delete()
 
-def get_class_name(camel_case):
-    return 'Uploader{}'.format(camel_case.title().replace('_', ''))
-
 
 def run_initiator(downloader, args_downloader, uploader, args_uploader):
     downloader = globals()['download_from_{}'.format(downloader)]
-    uploader = globals()[get_class_name(uploader)](*args_uploader)
+    uploader = get_uploader(uploader, args_uploader)
     uploader.clear()
     portion_size = 0
     total_size = 0
@@ -268,4 +265,5 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 
 
 def get_uploader(uploader_name, args_uploader):
-    return globals()[get_class_name(uploader_name)](*args_uploader)
+    class_uploader = 'Uploader{}'.format(uploader_name.title().replace('_', ''))
+    return globals()[class_uploader](*args_uploader)
