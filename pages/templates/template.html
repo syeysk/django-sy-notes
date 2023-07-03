@@ -2,10 +2,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+	  {{ metric_system_code | safe }}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="MobileOptimized" content="320" />
+	  <meta name="description" content="{% block description %}{% endblock %}" />
+    <meta name="keywords" content="{% block keywords %}{% endblock %}" />
     <title>Ведение заметок | {% block page_title %}No content{% endblock %}</title>
     <script src="{% static 'pages/extern/jquery-3.6.0.min.js' %}"></script>
     <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" crossorigin="anonymous">
@@ -14,6 +17,9 @@
     <link rel="stylesheet" href="{% static 'pages/windows.css' %}">
     <script src="{% static 'pages/extern/vue.3.js' %}"></script>
     <script src="{% static 'pages/components.js' %}"></script>
+
+	  <link rel="stylesheet" href="{% static 'pages/sticky-footer.css' %}">
+    <!--<script src="https://getbootstrap.com/docs/3.4/assets/js/ie-emulation-modes-warning.js"></script>-->
 </head>
 
 <body>
@@ -22,6 +28,7 @@
             text-align: center;
         }
         .submenu_box {
+            width: max-content;
             position: absolute;
             background: white;
             z-index: 1000;
@@ -39,7 +46,9 @@
         <ul class="nav nav-tabs">
             {% url 'index' as url %}
             <li class="nav-item">
-                <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">О проекте</a>
+                <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}" style="padding:5px">
+									<img src="{% static 'logo.svg' %}" title="Главная страница" alt="логотип микросервиса" style="height:30px;">
+								</a>
             </li>
 						{% url 'note_editor' as url %}
 						<li class="nav-item">
@@ -85,7 +94,12 @@
                             </tr>
                         </table>
 
-                        <input class="form-control" type="button" value="Войти" id="login_button"/> или войти через <a href="{{ google_auth_url }}" target="_blank">Google</a>
+                        <input class="form-control d-inline-block" type="button" value="Войти" id="login_button"/>
+											  <a style="decoration: none;" href="{{ google_auth_url }}" target="_blank">
+													  <input class="form-control d-inline-block" type="button" value="Войти через Google"/>
+												</a>
+											  <br>
+											  <div id="login_bad_message" class="alert alert-danger d-none" role="alert"></div>
                     </form>
                 </div>
             </li>
@@ -93,27 +107,30 @@
                 <input type="button" value="Регистрация" class="nav-link" id="btn_toggle_registration_box">
                 <div id="registration_box" class="submenu_box">
                     <form>
-                        <table>
-                            <tr>
-                              <td><label for="id_for_label_username">Пользователь:</label></td>
-                              <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
-                            </tr>
-
-                            <tr>
-                              <td><label for="id_for_label_email">E-mail:</label></td>
-                              <td><input required class="form-control" type="text" name="email" id="id_for_label_email"></td>
-                            </tr>
-
-                            <tr>
-                              <td><label for="id_for_label_password1">Пароль:</label></td>
-                              <td><input required class="form-control" type="password" name="password1" id="id_for_label_password1"></td>
-                            </tr>
-                            <tr>
-                              <td><label for="id_for_label_password2">Повторите пароль:</label></td>
-                              <td><input required class="form-control" type="password" name="password2" id="id_for_label_password2"></td>
-                            </tr>
-                        </table>
-
+											  <div class="mb-3 row" id="username-group">
+													  <label for="id_for_label_username" class="col-sm-4 form-label">Пользователь:</label>
+  													<div class="col-sm-6">
+                                <input required class="form-control" type="text" name="username" id="id_for_label_username">
+														</div>
+												</div>
+											  <div class="mb-3 row" id="email-group">
+  													<label for="id_for_label_email" class="col-sm-4 form-label">E-mail:</label>
+  													<div class="col-sm-6">
+															  <input required class="form-control" type="text" name="email" id="id_for_label_email">
+														</div>
+												</div>
+											  <div class="mb-3 row" id="password1-group">
+													  <label for="id_for_label_password1" class="col-sm-4 form-label">Пароль:</label>
+  													<div class="col-sm-6">
+															  <input required class="form-control" type="password" name="password1" id="id_for_label_password1">
+														</div>
+												</div>
+											  <div class="mb-3 row" id="password2-group">
+													  <label for="id_for_label_password2" class="col-sm-4 form-label">Повторите пароль:</label>
+  													<div class="col-sm-6">
+															  <input required class="form-control" type="password" name="password2" id="id_for_label_password2">
+														</div>
+												</div>
                         <input class="form-control" type="button" value="Зарегистрироваться" id="registrate_button"/>
                     </form>
                 </div>
@@ -127,14 +144,31 @@
         {% block content %}No content{% endblock %}
     </div>
 
-    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" crossorigin="anonymous"></script>
+		<footer class="footer">
+				<hr>
+  			<div style="display:flex; height: 99%; flex-direction: column; justify-content: center;">
+						<div class="container" style="height: fit-content; display: flex;justify-content: space-between;">
+							  <div>
+    								&#8580; <a href="https://syeysk.ru" target="_blank">SYeysk</a>, 2023
+								</div>
+								<div>
+									  <a href="https://github.com/syeysk/django-sy-notes" target="_blank">GitHub</a>
+								</div>
+						</div>
+   			</div>
+		</footer>
+
+    <!--<script src="https://getbootstrap.com/docs/3.4/assets/js/ie10-viewport-bug-workaround.js"></script>-->
+		<script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" crossorigin="anonymous"></script>
     <script>
         {% if not request.user.is_authenticated %}
             $('#btn_toggle_login_box').click(function(event) {
                 $('#login_box').toggle();
+                $('#registration_box').hide();
             });
             $('#btn_toggle_registration_box').click(function(event) {
                 $('#registration_box').toggle();
+                $('#login_box').hide();
             });
 
             $('#login_button').click(function(event) {
@@ -146,8 +180,12 @@
                     dataType: 'json',
                     data: $(event.target.form).serialize(),
                     success: function(result) {
-                        console.log(result);
-                        if (result.success) {window.location = window.location;}
+                        if (result.success) {
+                            window.location = window.location;
+                        } else {
+                            $('#login_bad_message').text('Неправильный пароль или пользователь не существует');
+                            $('#login_bad_message').removeClass('d-none');
+                        }
                     },
                     error: function(jqxhr, a, b) {
                         console.log('error');
@@ -157,20 +195,23 @@
                 });
             });
             $('#registrate_button').click(function(event) {
+                let form = event.target.form;
                 $.ajax({
                     url: "{% url 'custom_registration' %}",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
                     dataType: 'json',
-                    data: $(event.target.form).serialize(),
+                    data: $(form).serialize(),
                     success: function(result) {
                         console.log(result);
-                        if (result.success) {window.location = window.location;}
+                        window.location = window.location;
                     },
-                    error: function(jqxhr, a, b) {
-                        console.log('error');
-                        console.log(jqxhr.responseText);
+                    statusCode: {
+                        400: function(xhr) {
+                            clear_status_fields(form);
+                            set_invalid_field(form, xhr.responseJSON);
+                        },
                     },
                     method: "post"
                 });

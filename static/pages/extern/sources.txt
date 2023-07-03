@@ -1,5 +1,13 @@
 - https://code.jquery.com/jquery-3.6.0.min.js
 - https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css
-- https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js
+- https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css.map
 - https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js
+- https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js.map
+- https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js
 - https://unpkg.com/vue@3
+
+Bootsrap icons:
+- https://icons.getbootstrap.com/#install
+- https://github.com/twbs/icons/raw/main/bootstrap-icons.svg#<icon-name>
+  or
+	https://github.com/twbs/icons/blob/main/icons/<icon-name>.svg
