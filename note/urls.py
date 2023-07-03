@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from note.views import (
     NoteEditorView,
@@ -6,5 +6,6 @@ from note.views import (
 )
 
 urlpatterns = [
-    path('', NoteListView.as_view(), name='note_editor'),
+    re_path('(?P<note_id>[0-9]+)', NoteEditorView.as_view(), name='note_editor'),
+    path('', NoteListView.as_view(), name='note_list'),
 ]

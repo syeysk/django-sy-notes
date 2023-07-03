@@ -3,7 +3,7 @@ import os
 import requests
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, renderer_classes
@@ -91,19 +91,26 @@ def note_hook(request):
 
 
 class NoteEditorView(APIView):
-    def get(self, request):
-        notes = []
-        context = {'notes': notes}
+    def get(self, request, note_id):
+        note = get_object_or_404(Note, pk=note_id)
+        context = {'note': note}
         return render(request, 'pages/note_editor.html', context)
 
 
 class NoteListView(View):
 
     def get(self, request):
-        page_number = int(request.GET.get('p', '1'))
+        page_number = request.GET.get('p', '1')
+        page_number = int(page_number) if page_number.isdecimal() else 1
 
         notes = Note.objects.all()
         paginator = Paginator(notes, 20)
         page = paginator.page(page_number)
-        context = {'notes': page.object_list}
+        context = {
+            'notes': page.object_list,
+            'last_page': paginator.num_pages,
+            'current_page': page_number,
+            'next_page': page_number + 1,
+            'prev_page': page_number - 1,
+        }
         return render(request, 'pages/note_list.html', context)

@@ -50,7 +50,7 @@
 									<img src="{% static 'logo.svg' %}" title="Главная страница" alt="логотип микросервиса" style="height:30px;">
 								</a>
             </li>
-						{% url 'note_editor' as url %}
+						{% url 'note_list' as url %}
 						<li class="nav-item">
 								<a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">Заметки</a>
 						</li>

@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'custom_auth',
     'rest_framework',
     'drf_spectacular',
+    'mathfilters',
     'note',
     'pages',
 ]

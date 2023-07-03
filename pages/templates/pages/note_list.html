@@ -1,4 +1,5 @@
 {% extends 'template.html' %}
+{% load mathfilters %}
 
 {% block title %}Заметки{% endblock %}
 
@@ -9,8 +10,25 @@
         Совокупность заметок является базой знаний. Поиск по базе доступен через телеграм-бот и дискорд-сервер.
     </p>
 
-			{% for note in notes %}
-					<h3>{{ note.title }}</h3>
-					<p>{{ note.content|slice:":1000" }}</p>
-			{% endfor %}
+		{% for note in notes %}
+        <h3><a href="{% url 'note_editor' note.pk %}">{{ note.title }}</a></h3>
+				<p>{{ note.content|slice:":1000" }}</p>
+		{% endfor %}
+
+    <p>
+		  	{% if current_page > 1 %}
+    		  	<a href="{% url 'note_list' %}?p=1">1</a>
+		  	{% endif %}
+			  {% if current_page > 2 %}
+    			  <a href="{% url 'note_list' %}?p={{ prev_page }}"> << </a>
+		  	{% endif %}
+			  <span>{{ current_page }}</span>
+			  {% if current_page < last_page|sub:1 %}
+    			  <a href="{% url 'note_list' %}?p={{ next_page }}"> >> </a>
+		  	{% endif %}
+			  {% if current_page < last_page %}
+    			  <a href="{% url 'note_list' %}?p={{ last_page }}">{{ last_page }}</a>
+		  	{% endif %}
+		</p>
+
 {% endblock %}
