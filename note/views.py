@@ -93,7 +93,7 @@ def note_hook(request):
 class NoteEditorView(APIView):
     def get(self, request, note_id):
         note = get_object_or_404(Note, pk=note_id)
-        context = {'note': note}
+        context = {'note': {'title': note.title, 'content': note.content}}
         return render(request, 'pages/note_editor.html', context)
 
 

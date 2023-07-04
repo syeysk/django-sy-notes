@@ -4,5 +4,93 @@
 {% block page_title %} Заметка | {{ note.title }}{% endblock %}
 
 {% block content %}
-    {{ note.content }}
+    {{ note|json_script:'note_json' }}
+
+    <div id="app_note_id"></div>
+
+    <script>
+        NoteViewerComponent = {
+            props: ['noteTitle', 'noteContent'],
+            data() {
+                return {title: this.noteTitle, content: this.noteContent}
+            },
+            template: `
+                <div>
+										<h2>[[ title ]]</h2>
+										<div>[[ content ]]</div>
+                </div>
+            `,
+        }
+		</script>
+
+    <script>
+        NoteEditorComponent = {
+            props: ['noteTitle', 'noteContent'],
+            emits: ['save'],
+            data() {
+                return {title: this.noteTitle, content: this.noteContent}
+            },
+            template: `
+                <form>
+										<input name="title" v-model="title">
+										<br>
+										<textarea name="content"></textarea>
+										<input type="button" value="Сохранить" @click="save">
+								</form>
+            `,
+            methods: {
+                save() {
+                    this.$emit('save', this.title, this.content);
+                },
+            },
+        }
+		</script>
+
+    <script>
+        NoteComponent = {
+            template: `
+                <input type="button" value="Edit" @click="edit" :class="{'d-none': mode == 'edit'}">
+                <note-viewer-component
+                    :class="{'d-none': mode == 'edit'}"
+                    :note-title="note.title"
+                    :note-content="note.content"
+                ></note-viewer-component>
+                <note-editor-component
+                    :class="{'d-none': mode == 'view'}"
+                    :note-title="note.title"
+                    :note-content="note.content"
+                    @save="save"
+                ></note-editor-component>
+            `,
+            components: {NoteViewerComponent, NoteEditorComponent},
+            data() {
+                return {
+                    note: JSON.parse(document.getElementById('note_json').textContent),
+                    mode: 'view',
+                }
+            },
+            methods: {
+                edit() {
+                    this.mode = 'edit';
+                },
+                view() {
+                    this.mode = 'view';
+                },
+                save(title, content) {
+                    this.note.title = title;
+                    this.note.content = content;
+                    this.view();
+                }
+            },
+        }
+		</script>
+
+    <script>
+			  const { createApp } = Vue;
+
+			  var app_note = createApp(NoteComponent);
+			  app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var app_note_list = app_note.mount('#app_note_id');
+        console.log(app_note_list);
+		</script>
 {% endblock %}
