@@ -10,9 +10,9 @@
 
     <script>
         NoteViewerComponent = {
-            props: ['noteTitle', 'noteContent'],
+            props: ['title', 'content'],
             data() {
-                return {title: this.noteTitle, content: this.noteContent}
+                return {}
             },
             template: `
                 <div>
@@ -25,22 +25,27 @@
 
     <script>
         NoteEditorComponent = {
-            props: ['noteTitle', 'noteContent'],
+            props: ['title', 'content', 'errorMessage'],
             emits: ['save'],
             data() {
-                return {title: this.noteTitle, content: this.noteContent}
+                return {mTitle: this.title, mContent: this.content}
             },
             template: `
                 <form>
-										<input name="title" v-model="title">
+										<input name="title" v-model="mTitle" style="width:99%;">
+										<br><br>
+										<textarea name="content" v-model="mContent" style="width:99%;height:60vh;"></textarea>
 										<br>
-										<textarea name="content"></textarea>
+										<div :class="{'d-none': !errorMessage}">
+    										<span>[[ errorMessage ]]</span>
+    										<br>
+    								</div>
 										<input type="button" value="Сохранить" @click="save">
 								</form>
             `,
             methods: {
                 save() {
-                    this.$emit('save', this.title, this.content);
+                    this.$emit('save', this.mTitle, this.mContent);
                 },
             },
         }
@@ -52,20 +57,23 @@
                 <input type="button" value="Edit" @click="edit" :class="{'d-none': mode == 'edit'}">
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
-                    :note-title="note.title"
-                    :note-content="note.content"
+                    :title="title"
+                    :content="content"
                 ></note-viewer-component>
                 <note-editor-component
                     :class="{'d-none': mode == 'view'}"
-                    :note-title="note.title"
-                    :note-content="note.content"
+                    :title="title"
+                    :content="content"
+                    :error-message="errorMessage"
                     @save="save"
                 ></note-editor-component>
             `,
             components: {NoteViewerComponent, NoteEditorComponent},
             data() {
                 return {
-                    note: JSON.parse(document.getElementById('note_json').textContent),
+                    title: note_object.title,
+                    content: note_object.content,
+                    errorMessage: '',
                     mode: 'view',
                 }
             },
@@ -77,8 +85,9 @@
                     this.mode = 'view';
                 },
                 save(title, content) {
-                    this.note.title = title;
-                    this.note.content = content;
+                    this.title = title;
+                    this.content = content;
+                    this.errorMessage = 'сохранение в разработке...'
                     this.view();
                 }
             },
@@ -86,6 +95,7 @@
 		</script>
 
     <script>
+        var note_object = JSON.parse(document.getElementById('note_json').textContent);
 			  const { createApp } = Vue;
 
 			  var app_note = createApp(NoteComponent);
