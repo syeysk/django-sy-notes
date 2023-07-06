@@ -228,15 +228,20 @@ class UploaderDjangoServer:
 
     def edit(self, title, new_title=None, new_content=None):
         note = Note.objects.get(title=title)
-        if new_title:
+        updated_fields = []
+        if new_title and note.title != new_title:
             note.title = new_title
+            updated_fields.append('title')
 
-        if new_content:
+        if new_content and note.content != new_content:
             note.content = new_content
+            updated_fields.append('content')
 
-        note.fetch_search_fields()
-        note.save()
-        return {'title': note.title, 'content': note.content}
+        if updated_fields:
+            note.fetch_search_fields()
+            note.save()
+
+        return updated_fields
 
     def delete(self, title):
         note = Note.objects.get(title=title)

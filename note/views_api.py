@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from custom_auth.authentication import TokenAuthentication
 from note.load_from_github import get_uploader, get_root_url
 from note.credentials import args_uploader
-from note.serializers import (
+from note.serializers_api import (
     NoteAddViewSerializer,
     NoteEditViewSerializer,
     NoteResponseSerializer,

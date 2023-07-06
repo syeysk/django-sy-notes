@@ -12,8 +12,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import prepare_to_search, get_root_url
+from note.credentials import args_uploader
+from note.load_from_github import prepare_to_search, get_root_url, get_uploader
 from note.models import Note
+from note.serializers import NoteEditViewSerializer
 
 
 @extend_schema(
@@ -91,10 +93,38 @@ def note_hook(request):
 
 
 class NoteEditorView(APIView):
-    def get(self, request, note_id):
+    @staticmethod
+    def get(request, note_id):
         note = get_object_or_404(Note, pk=note_id)
         context = {'note': {'title': note.title, 'content': note.content}}
         return render(request, 'pages/note_editor.html', context)
+
+    @staticmethod
+    def post(request, note_id):
+        """
+        Метод редактирования существующей заметки.
+
+        Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
+        """
+        #self.authenticate()
+        serializer = NoteEditViewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        title = data.get('title')
+        new_title = data.get('new_title')
+
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        if not uploader.get(title=title):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if new_title and new_title != title and uploader.get(title=new_title):
+            response_data = {'detail': 'Заметка с таким названием уже существует'}
+            return Response(status=status.HTTP_200_OK, data=response_data)
+
+        updated_fields = uploader.edit(title, new_title, data.get('new_content'))
+        return Response(status=status.HTTP_200_OK, data=updated_fields)
 
 
 class NoteListView(View):

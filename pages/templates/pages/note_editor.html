@@ -9,6 +9,11 @@
     <div id="app_note_id"></div>
 
     <script>
+        var URL_SAVE_NOTE = '';
+        var CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
+    <script>
         NoteViewerComponent = {
             props: ['title', 'content'],
             data() {
@@ -21,11 +26,11 @@
                 </div>
             `,
         }
-		</script>
+    </script>
 
     <script>
         NoteEditorComponent = {
-            props: ['title', 'content', 'errorMessage'],
+            props: ['title', 'content', 'errorMessage', 'successMessage'],
             emits: ['save'],
             data() {
                 return {mTitle: this.title, mContent: this.content}
@@ -33,23 +38,27 @@
             template: `
                 <form>
                     <input name="title" v-model="mTitle" style="width:99%;">
-					          <br><br>
+                    <br><br>
                     <textarea name="content" v-model="mContent" style="width:99%;height:60vh;"></textarea>
                     <br>
                     <div :class="{'d-none': !errorMessage}">
                         <span>[[ errorMessage ]]</span>
-                    <br>
+                        <br>
+                    </div>
+                    <div :class="{'d-none': !successMessage}">
+                        <span>[[ successMessage ]]</span>
+                        <br>
                     </div>
                     <input type="button" value="Сохранить" @click="save">
                 </form>
             `,
             methods: {
-                save() {
-                    this.$emit('save', this.mTitle, this.mContent);
+                save(event) {
+                    this.$emit('save', event, this.mTitle, this.mContent);
                 },
             },
         }
-		</script>
+    </script>
 
     <script>
         NoteComponent = {
@@ -65,6 +74,7 @@
                     :title="title"
                     :content="content"
                     :error-message="errorMessage"
+                    :success-message="successMessage"
                     @save="save"
                 ></note-editor-component>
             `,
@@ -74,6 +84,7 @@
                     title: note_object.title,
                     content: note_object.content,
                     errorMessage: '',
+                    successMessage: '',
                     mode: 'view',
                 }
             },
@@ -84,15 +95,38 @@
                 view() {
                     this.mode = 'view';
                 },
-                save(title, content) {
-                    this.title = title;
-                    this.content = content;
-                    this.errorMessage = 'сохранение в разработке...'
-                    this.view();
+                save(event, title, content) {
+                    let self = this;
+                    this.successMessage = 'Сохраняем...'
+                    $.ajax({
+                        url: URL_SAVE_NOTE,
+                        headers: {
+                            "X-CSRFToken": CSRF_TOKEN,
+                        },
+                        dataType: 'json',
+                        data: {new_title: title, new_content: content, title: self.title},
+                        success: function(result) {
+                            set_valid_field(event.target.form, result);
+                            self.title = title;
+                            self.content = content;
+                            self.successMessage = 'Сохранено'
+                            self.view();
+                        },
+                        statusCode: {
+                            500: function(xhr) {
+                                self.errorMessage = 'ошибка сохранения'
+                            },
+                            400: function(xhr) {
+                                set_invalid_field(event.target.form, xhr.responseJSON);
+                                self.errorMessage = 'сохранение в разработке...'
+                            },
+                        },
+                        method: "post"
+                    });
                 }
             },
         }
-		</script>
+    </script>
 
     <script>
         var note_object = JSON.parse(document.getElementById('note_json').textContent);
@@ -102,5 +136,5 @@
         app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
         var app_note_list = app_note.mount('#app_note_id');
         console.log(app_note_list);
-		</script>
+    </script>
 {% endblock %}
