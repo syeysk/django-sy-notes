@@ -16,8 +16,8 @@
             },
             template: `
                 <div>
-										<h2>[[ title ]]</h2>
-										<div>[[ content ]]</div>
+					<h2>[[ title ]]</h2>
+					<div>[[ content ]]</div>
                 </div>
             `,
         }
@@ -32,16 +32,16 @@
             },
             template: `
                 <form>
-										<input name="title" v-model="mTitle" style="width:99%;">
-										<br><br>
-										<textarea name="content" v-model="mContent" style="width:99%;height:60vh;"></textarea>
-										<br>
-										<div :class="{'d-none': !errorMessage}">
-    										<span>[[ errorMessage ]]</span>
-    										<br>
-    								</div>
-										<input type="button" value="Сохранить" @click="save">
-								</form>
+					<input name="title" v-model="mTitle" style="width:99%;">
+					<br><br>
+					<textarea name="content" v-model="mContent" style="width:99%;height:60vh;"></textarea>
+					<br>
+					<div :class="{'d-none': !errorMessage}">
+						<span>[[ errorMessage ]]</span>
+						<br>
+    			    </div>
+					<input type="button" value="Сохранить" @click="save">
+				</form>
             `,
             methods: {
                 save() {
@@ -96,10 +96,10 @@
 
     <script>
         var note_object = JSON.parse(document.getElementById('note_json').textContent);
-			  const { createApp } = Vue;
+		const { createApp } = Vue;
 
-			  var app_note = createApp(NoteComponent);
-			  app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
+		var app_note = createApp(NoteComponent);
+		app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
         var app_note_list = app_note.mount('#app_note_id');
         console.log(app_note_list);
 		</script>
