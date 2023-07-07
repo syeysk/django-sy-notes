@@ -10,6 +10,8 @@ from firebase_admin import credentials, firestore
 from typesense import Client
 
 from note.models import Note, prepare_to_search
+from note.serializers import UploaderFirestoreSerializer
+from note.serializers import UploaderTypesenseSerializer
 
 
 def get_root_url(
@@ -83,6 +85,8 @@ def download_from_github_directory(owner, repo, directory, token):
 
 
 class UploaderFirestore:
+    verbose_name = 'Firestore'
+    serializer = UploaderFirestoreSerializer
     MAX_PORTION_SIZE = 500
 
     def __init__(self, certificate):
@@ -103,6 +107,8 @@ class UploaderFirestore:
 
 
 class UploaderTypesense:
+    verbose_name = 'Typesense'
+    serializer = UploaderTypesenseSerializer
     MAX_PORTION_SIZE = 500
     portion = []
     knowledge_schema = {
@@ -162,6 +168,7 @@ class UploaderTypesense:
 
 
 class UploaderDjangoServer:
+    verbose_name = 'Микросервис заметок'
     MAX_PORTION_SIZE = 400
     portion = []
 
