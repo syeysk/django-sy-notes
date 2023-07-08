@@ -1,4 +1,5 @@
 import os
+from urllib.parse import unquote
 
 import yaml
 import requests
@@ -115,14 +116,14 @@ def note_hook(request):
 
 class NoteEditorView(APIView):
     @staticmethod
-    def get(request, note_id):
-        note = get_object_or_404(Note, pk=note_id)
+    def get(request, quoted_title):
+        note = get_object_or_404(Note, title=unquote(quoted_title))
         content_yaml, content_md = separate_yaml(note.content)
         context = {'note': {'title': note.title, 'content': note.content, 'content_html': markdownify(content_md)}}
         return render(request, 'pages/note_editor.html', context)
 
     @staticmethod
-    def post(request, note_id):
+    def post(request, quoted_title):
         """
         Метод редактирования существующей заметки.
 
@@ -133,7 +134,7 @@ class NoteEditorView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        title = data.get('title')
+        title = unquote(quoted_title) #data.get('title')
         new_title = data.get('new_title')
         new_content = data.get('new_content')
 
@@ -155,7 +156,6 @@ class NoteEditorView(APIView):
 
 
 class NoteListView(View):
-
     def get(self, request):
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1

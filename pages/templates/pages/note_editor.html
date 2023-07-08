@@ -105,6 +105,11 @@
                         success: function(result) {
                             set_valid_field(event.target.form, result.updated_fields);
                             self.successMessage = 'Сохранено';
+                            history.pushState(
+                                null,
+                                null,
+                                location.href.replace('/' + encodeURI(self.title), '/' + encodeURI(title)),
+                            );
                             self.title = title;
                             self.content = content;
                             self.content_html = result.content_html;
@@ -118,6 +123,9 @@
                             400: function(xhr) {
                                 set_invalid_field(event.target.form, xhr.responseJSON);
                                 self.errorMessage = 'сохранение в разработке...'
+                            },
+                            404: function(xhr) {
+                                self.errorMessage = 'заметка с таким именем не существует'
                             },
                         },
                         method: "post"

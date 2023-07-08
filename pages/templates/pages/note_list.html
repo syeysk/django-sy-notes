@@ -11,7 +11,7 @@
     </p>
 
 		{% for note in notes %}
-        <h3><a href="{% url 'note_editor' note.pk %}">{{ note.title }}</a></h3>
+        <h3><a href="{% url 'note_editor' note.title %}">{{ note.title }}</a></h3>
 				<p>{{ note.content|slice:":1000" }}</p>
 		{% endfor %}
 
