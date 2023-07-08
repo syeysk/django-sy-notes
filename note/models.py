@@ -1,6 +1,7 @@
+from django.contrib.auth.models import User
 from django.db import models
 
-  
+
 def prepare_to_search(value):
     return value.lower().replace('ё', 'е')
 
@@ -19,3 +20,18 @@ class Note(models.Model):
     def fetch_search_fields(self):
         self.search_content = prepare_to_search(self.content)
         self.search_title = prepare_to_search(self.title)
+
+
+class NoteStorageServieModel(models.Model):
+    service = models.CharField(verbose_name='Внешний сервис хранилища', choices=None, max_length=30, db_index=True)
+    credentials = models.JSONField(verbose_name='Данные для полключения', default='{}')
+    name = models.CharField(verbose_name='Наименование', max_length=100, default='')
+    is_default = models.BooleanField(
+        verbose_name='Является ли хранилищем по-умолчанию?',
+        help_text=(
+            'Если да, то это хранилище будет использовано при открытии страницы списка заметок,'
+            ' а также при редактировании заметки'
+        ),
+        default=False,
+    )
+    user = models.OneToOneField(User, null=False, on_delete=models.CASCADE)
