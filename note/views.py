@@ -1,11 +1,13 @@
 import os
 
+import yaml
 import requests
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from drf_spectacular.utils import extend_schema
+from markdownify.templatetags.markdownify import markdownify
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -16,6 +18,25 @@ from note.credentials import args_uploader
 from note.load_from_github import prepare_to_search, get_root_url, get_uploader
 from note.models import Note
 from note.serializers import NoteEditViewSerializer
+
+
+def separate_yaml(content):
+    content = content.strip()
+    lines = content.split('\n')
+    is_yaml = lines and lines[0] == '---'
+    data_yaml = {}
+    if is_yaml:
+        yaml_length = 4
+        for line in lines[1:]:
+            if line == '---':
+                break
+
+            yaml_length += len(line) + 1
+
+        data_yaml = yaml.load(content[:yaml_length], yaml.SafeLoader)
+        content = content[yaml_length + 4:].lstrip()
+
+    return data_yaml, content
 
 
 @extend_schema(
@@ -96,7 +117,8 @@ class NoteEditorView(APIView):
     @staticmethod
     def get(request, note_id):
         note = get_object_or_404(Note, pk=note_id)
-        context = {'note': {'title': note.title, 'content': note.content}}
+        content_yaml, content_md = separate_yaml(note.content)
+        context = {'note': {'title': note.title, 'content': note.content, 'content_html': markdownify(content_md)}}
         return render(request, 'pages/note_editor.html', context)
 
     @staticmethod
@@ -113,6 +135,7 @@ class NoteEditorView(APIView):
 
         title = data.get('title')
         new_title = data.get('new_title')
+        new_content = data.get('new_content')
 
         uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
         uploader = get_uploader(uploader_name, args_uploader[uploader_name])
@@ -123,8 +146,12 @@ class NoteEditorView(APIView):
             response_data = {'detail': 'Заметка с таким названием уже существует'}
             return Response(status=status.HTTP_200_OK, data=response_data)
 
-        updated_fields = uploader.edit(title, new_title, data.get('new_content'))
-        return Response(status=status.HTTP_200_OK, data=updated_fields)
+        updated_fields = uploader.edit(title, new_title, new_content)
+        content_yaml, content_md = separate_yaml(new_content)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
+        )
 
 
 class NoteListView(View):

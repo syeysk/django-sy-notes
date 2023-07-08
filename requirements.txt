@@ -5,9 +5,11 @@ firebase-admin==5.2.0
 requests==2.31.0
 djangorestframework==3.14.0
 django-environ==0.10.0
+django-markdownify==0.9.3
 django-mathfilters==1.0.0
 drf-spectacular==0.26.2
 pytest==7.3.1
 pytest-django==4.5.2
+pyyaml==6.0
 selenium==4.10.0
 typesense==0.13.1

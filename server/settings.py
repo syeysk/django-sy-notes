@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'mathfilters',
+    'markdownify.apps.MarkdownifyConfig',
     'note',
     'pages',
 ]
@@ -135,5 +136,11 @@ EXTERN_AUTH = {
     'google': {
         'client_id': env('EXTERN_AUTH_GOOGLE_CLIENT_ID'),
         'client_secret': env('EXTERN_AUTH_GOOGLE_CLIENT_SECRET'),
+    }
+}
+
+MARKDOWNIFY = {
+    'default': {
+        'BLEACH': False,
     }
 }

@@ -1,4 +1,5 @@
 {% extends 'template.html' %}
+{% load markdownify %}
 
 {% block title %}{{ note.title }}{% endblock %}
 {% block page_title %} Заметка | {{ note.title }}{% endblock %}
@@ -11,20 +12,16 @@
     <script>
         var URL_SAVE_NOTE = '';
         var CSRF_TOKEN = "{{ csrf_token }}";
+
+        function update_page(title) {
+            $('body h1')[0].textContent = title;
+        }
     </script>
 
     <script>
         NoteViewerComponent = {
-            props: ['title', 'content'],
-            data() {
-                return {}
-            },
-            template: `
-                <div>
-                    <h2>[[ title ]]</h2>
-                    <div>[[ content ]]</div>
-                </div>
-            `,
+            props: ['content_html'],
+            template: `<div v-html="content_html"></div>`,
         }
     </script>
 
@@ -66,8 +63,7 @@
                 <input type="button" value="Edit" @click="edit" :class="{'d-none': mode == 'edit'}">
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
-                    :title="title"
-                    :content="content"
+                    :content_html="content_html"
                 ></note-viewer-component>
                 <note-editor-component
                     :class="{'d-none': mode == 'view'}"
@@ -83,6 +79,7 @@
                 return {
                     title: note_object.title,
                     content: note_object.content,
+                    content_html: note_object.content_html,
                     errorMessage: '',
                     successMessage: '',
                     mode: 'view',
@@ -106,10 +103,12 @@
                         dataType: 'json',
                         data: {new_title: title, new_content: content, title: self.title},
                         success: function(result) {
-                            set_valid_field(event.target.form, result);
+                            set_valid_field(event.target.form, result.updated_fields);
+                            self.successMessage = 'Сохранено';
                             self.title = title;
                             self.content = content;
-                            self.successMessage = 'Сохранено'
+                            self.content_html = result.content_html;
+                            update_page(title);
                             self.view();
                         },
                         statusCode: {
