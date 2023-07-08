@@ -28,7 +28,7 @@
     <script>
         NoteEditorComponent = {
             props: ['title', 'content', 'errorMessage', 'successMessage'],
-            emits: ['save'],
+            emits: ['save', 'cancel'],
             data() {
                 return {mTitle: this.title, mContent: this.content}
             },
@@ -47,11 +47,15 @@
                         <br>
                     </div>
                     <input type="button" value="Сохранить" @click="save">
+                    <input type="button" value="Отменить" @click="cancel">
                 </form>
             `,
             methods: {
                 save(event) {
                     this.$emit('save', event, this.mTitle, this.mContent);
+                },
+                cancel(event) {
+                    this.$emit('cancel', event, this, this.mTitle, this.mContent);
                 },
             },
         }
@@ -72,6 +76,7 @@
                     :error-message="errorMessage"
                     :success-message="successMessage"
                     @save="save"
+                    @cancel="cancel"
                 ></note-editor-component>
             `,
             components: {NoteViewerComponent, NoteEditorComponent},
@@ -92,6 +97,11 @@
                 view() {
                     this.mode = 'view';
                 },
+                cancel(event, editor, title, content) {
+                    editor.mTitle = this.title;
+                    editor.mContent = this.content;
+                    this.view();
+                },
                 save(event, title, content) {
                     let self = this;
                     this.successMessage = 'Сохраняем...'
@@ -104,7 +114,7 @@
                         data: {new_title: title, new_content: content, title: self.title},
                         success: function(result) {
                             set_valid_field(event.target.form, result.updated_fields);
-                            self.successMessage = 'Сохранено';
+                            self.successMessage = '';
                             history.pushState(
                                 null,
                                 null,
