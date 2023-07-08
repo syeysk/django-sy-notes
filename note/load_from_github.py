@@ -10,8 +10,7 @@ from firebase_admin import credentials, firestore
 from typesense import Client
 
 from note.models import Note, prepare_to_search
-from note.serializers import UploaderFirestoreSerializer
-from note.serializers import UploaderTypesenseSerializer
+from note.serializers import UploaderFirestoreSerializer, UploaderTypesenseSerializer
 
 
 def get_root_url(
