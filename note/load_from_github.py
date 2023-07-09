@@ -1,6 +1,7 @@
+import json
 import io
-import zipfile
 import os.path
+import zipfile
 
 import firebase_admin
 import requests
@@ -278,3 +279,27 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 def get_uploader(uploader_name, args_uploader):
     class_uploader = 'Uploader{}'.format(uploader_name.title().replace('_', ''))
     return globals()[class_uploader](*args_uploader)
+
+
+def get_storage_service(source=None, user=None):
+    """Функция получения объекта хранилища заметок"""
+    from note.models import NoteStorageServiceModel
+
+    storage = None
+    if user and user.is_authenticated() and source:
+        storage = NoteStorageServiceModel.objects.filter(user=user, source=source)
+    elif user and user.is_authenticated():
+        storage = NoteStorageServiceModel.objects.filter(user=user, is_default=True)
+    elif source:
+        storage = NoteStorageServiceModel.objects.filter(source=source)
+
+    if storage:
+        service_name = storage.service
+        service_credentials = json.loads(storage.credentials)
+        source = storage.source
+    else:
+        service_name = settings.DEFAULT_UPLOADER
+        service_credentials = {}
+        source = 'django_server'
+
+    return get_uploader(service_name, service_credentials), source
