@@ -286,9 +286,9 @@ def get_storage_service(source=None, user=None):
     from note.models import NoteStorageServiceModel
 
     storage = None
-    if user and user.is_authenticated() and source:
+    if user and user.is_authenticated and source:
         storage = NoteStorageServiceModel.objects.filter(user=user, source=source)
-    elif user and user.is_authenticated():
+    elif user and user.is_authenticated:
         storage = NoteStorageServiceModel.objects.filter(user=user, is_default=True)
     elif source:
         storage = NoteStorageServiceModel.objects.filter(source=source)

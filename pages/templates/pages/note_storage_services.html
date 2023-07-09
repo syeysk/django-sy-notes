@@ -1,0 +1,57 @@
+{% extends 'template.html' %}
+{% load markdownify %}
+
+{% block title %}Сервисы хранилищ{% endblock %}
+{% block page_title %} Сервисы хранилищ {% endblock %}
+
+{% block content %}
+    {{ storage_services|json_script:'storage_services' }}
+
+    <div id="app_note_storage_services_id"></div>
+
+    <script>
+        NoteStorageServiceComponent = {
+            props:  ['service', 'source', 'description', 'isDefault'],
+            template: `
+                <div style="padding: 3px 0 3px 0; margin-bottom: 3px;">
+                    <div class='storage_header'>
+                        <div style="font-weight: 200;">
+                            <span>[[ source ]]</span>
+                            |
+                            <span>[[ service ]]</span>
+                            <span :class="{'d-none': !isDefault}"> | по-умолчанию</span>
+                        </div>
+                        <span>[[ description ]]</span>
+                    </div>
+                    <form class='storage_body'></form>
+                </div>
+            `,
+        }
+		</script>
+
+    <script>
+        NoteStorageServicesComponent = {
+            data() {
+                return {storages: JSON.parse(document.getElementById('storage_services').textContent)}
+            },
+            components: {NoteStorageServiceComponent},
+            template: `
+                <note-storage-service-component
+                    v-for="storage in storages"
+                    :service="storage.service"
+                    :description="storage.description"
+                    :is-default="storage.is_default"
+                    :source="storage.source"
+                ></note-storage-service-component>
+            `,
+        }
+		</script>
+
+    <script>
+        const { createApp } = Vue;
+
+        var app_note = createApp(NoteStorageServicesComponent);
+        app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var app_note_storage_services = app_note.mount('#app_note_storage_services_id');
+    </script>
+{% endblock %}

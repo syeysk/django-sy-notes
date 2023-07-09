@@ -18,6 +18,7 @@ from rest_framework import status
 from note.credentials import args_uploader
 from note.load_from_github import prepare_to_search, get_root_url, get_uploader
 from note.models import Note
+from note.models import NoteStorageServiceModel
 from note.serializers import NoteEditViewSerializer
 
 
@@ -171,3 +172,23 @@ class NoteListView(View):
             'prev_page': page_number - 1,
         }
         return render(request, 'pages/note_list.html', context)
+
+
+class NoteStorageServiceListView(View):
+    def get(self, request):
+        storages = NoteStorageServiceModel.objects
+        if request.user.is_authenticated:
+            storages = storages.filter(user=request.user).values('service', 'description', 'is_default', 'source')
+        else:
+            storages = storages.values('service', 'description', 'source')
+
+        test_storages = [
+            {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first'},
+            {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy'},
+            {'service': 'Typesense', 'description': 'для поиска по холстам', 'is_default': False, 'source': 'for_searching'},
+        ]
+
+        context = {
+            'storage_services': test_storages,
+        }
+        return render(request, 'pages/note_storage_services.html', context)
