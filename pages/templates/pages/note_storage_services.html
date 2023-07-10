@@ -15,11 +15,17 @@
         .storage_header:hover {
             background-color: #ebebeb;
         }
+        .collapsed {
+            background-color: #eeeeee;
+        }
         .collapse-icon {
             width: calc(var(--bs-body-font-size) - 4px);
             height: calc(var(--bs-body-font-size) - 4px);
             cursor: pointer;
             margin-left: 4px;
+        }
+        .storage_body {
+            padding: 0 10px 10px 35px;
         }
 		</style>
 
@@ -31,25 +37,53 @@
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'isDefault'],
             data() {
-                return {collapsed: true};
+                return {
+                    collapsed: true,
+                    mDescription: this.description,
+                    mSource: this.source,
+                    mIsDefault: this.isDefault,
+                };
             },
             emits: ['toggle'],
             template: `
-                <div style="margin-bottom: 3px;">
+                <div style="margin-bottom: 3px;" :class="{'collapsed': !collapsed}">
                     <div class="storage_header" @click="toggle">
                         <div style="font-weight: 200;">
-                            <span>[[ source ]]</span>
+                            <span>[[ mSource ]]</span>
                             |
                             <span>[[ service ]]</span>
-                            <span :class="{'d-none': !isDefault}"> | по-умолчанию</span>
+                            <span :class="{'d-none': !mIsDefault}"> | по-умолчанию</span>
                         </div>
-                        <span>[[ description ]]</span>
+                        <span :class="{'d-none': !collapsed}">[[ mDescription ]]</span>
                         <svg class="bi collapse-icon" role="img" title="Open form" style="float: right;">
                             <use xlink:href="{% static 'pages/extern/bootstrap-icons.svg' %}#triangle-fill"/>
                         </svg>
                     </div>
                     <form class="storage_body" :class="{'d-none': collapsed}">
-                        <input type="button" value="Сохранить">
+
+                        <div class="mb-3 form-group" id="description-group">
+                            <div class="form-floating">
+                                <input v-model="mDescription" class="form-control" type="input" value="" name="description" id="description-field">
+                                <label for="description-field" class="form-label">Описание</label>
+                             </div>
+                        </div>
+
+                        <div class="mb-3 form-group" id="source-group">
+                            <div class="form-floating">
+                                <input v-model="mSource" class="form-control" type="input" value="" name="source" id="source-field">
+                                <label for="source-field" class="form-label">Код источника</label>
+                             </div>
+                        </div>
+
+                        <div class="mb-3 form-group" id="is_default-group">
+                            <div class="form-check form-switch">
+                                <input v-model="mIsDefault" class="form-check-input" type="checkbox" value="" name="is_default" id="is_default-field">
+                                <label for="is_default-field" class="form-check-label">Использовать по-умолчанию</label>
+                             </div>
+                        </div>
+
+                        <input type="button" value="Сохранить" class="btn btn-secondary">
+
                     </form>
                 </div>
             `,
