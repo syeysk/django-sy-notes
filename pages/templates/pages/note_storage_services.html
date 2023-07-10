@@ -44,13 +44,13 @@
                             <span :class="{'d-none': !isDefault}"> | по-умолчанию</span>
                         </div>
                         <span>[[ description ]]</span>
+                        <svg class="bi collapse-icon" role="img" title="Open form" style="float: right;">
+                            <use xlink:href="{% static 'pages/extern/bootstrap-icons.svg' %}#triangle-fill"/>
+                        </svg>
                     </div>
                     <form class="storage_body" :class="{'d-none': collapsed}">
                         <input type="button" value="Сохранить">
                     </form>
-                    <svg class="bi collapse-icon" role="img" title="Open form" style="float: right;">
-                        <use xlink:href="{% static 'pages/extern/bootstrap-icons.svg' %}#triangle-fill"/>
-                    </svg>
                 </div>
             `,
             methods: {
