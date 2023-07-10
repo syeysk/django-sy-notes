@@ -1,10 +1,28 @@
 {% extends 'template.html' %}
 {% load markdownify %}
+{% load static %}
 
 {% block title %}Сервисы хранилищ{% endblock %}
 {% block page_title %} Сервисы хранилищ {% endblock %}
 
 {% block content %}
+    <style>
+        .storage_header {
+            cursor: pointer;
+            padding: 3px 3px 3px 10px;
+            border-radius: 3px;
+        }
+        .storage_header:hover {
+            background-color: #ebebeb;
+        }
+        .collapse-icon {
+            width: calc(var(--bs-body-font-size) - 4px);
+            height: calc(var(--bs-body-font-size) - 4px);
+            cursor: pointer;
+            margin-left: 4px;
+        }
+		</style>
+
     {{ storage_services|json_script:'storage_services' }}
 
     <div id="app_note_storage_services_id"></div>
@@ -12,9 +30,13 @@
     <script>
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'isDefault'],
+            data() {
+                return {collapsed: true};
+            },
+            emits: ['toggle'],
             template: `
-                <div style="padding: 3px 0 3px 0; margin-bottom: 3px;">
-                    <div class='storage_header'>
+                <div style="margin-bottom: 3px;">
+                    <div class="storage_header" @click="toggle">
                         <div style="font-weight: 200;">
                             <span>[[ source ]]</span>
                             |
@@ -23,16 +45,30 @@
                         </div>
                         <span>[[ description ]]</span>
                     </div>
-                    <form class='storage_body'></form>
+                    <form class="storage_body" :class="{'d-none': collapsed}">
+                        <input type="button" value="Сохранить">
+                    </form>
+                    <svg class="bi collapse-icon" role="img" title="Open form" style="float: right;">
+                        <use xlink:href="{% static 'pages/extern/bootstrap-icons.svg' %}#triangle-fill"/>
+                    </svg>
                 </div>
             `,
+            methods: {
+                toggle(event) {
+                    this.collapsed = this.collapsed ? false : true;
+                    this.$emit('toggle', this, this.collapsed);
+                },
+            },
         }
 		</script>
 
     <script>
         NoteStorageServicesComponent = {
             data() {
-                return {storages: JSON.parse(document.getElementById('storage_services').textContent)}
+                return {
+                    storages: JSON.parse(document.getElementById('storage_services').textContent),
+                    uncollapsed_component: null,
+                }
             },
             components: {NoteStorageServiceComponent},
             template: `
@@ -42,8 +78,17 @@
                     :description="storage.description"
                     :is-default="storage.is_default"
                     :source="storage.source"
+                    @toggle="toggle_any"
                 ></note-storage-service-component>
             `,
+            methods: {
+                toggle_any(component, is_collapsed) {
+                    if (!is_collapsed && this.uncollapsed_component && component != this.uncollapsed_component) {
+                        this.uncollapsed_component.collapsed = true;
+                    }
+                    this.uncollapsed_component = component;
+                },
+            },
         }
 		</script>
 
