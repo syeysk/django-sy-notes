@@ -35,10 +35,10 @@
 
     <script>
         NoteStorageServiceComponent = {
-            props:  ['service', 'source', 'description', 'isDefault'],
+            props:  ['service', 'source', 'description', 'isDefault', 'isNew'],
             data() {
                 return {
-                    collapsed: true,
+                    collapsed: this.isNew ? false : true,
                     mDescription: this.description,
                     mSource: this.source,
                     mIsDefault: this.isDefault,
@@ -106,13 +106,16 @@
             },
             components: {NoteStorageServiceComponent},
             template: `
+                <input type="button" value="Добавить" @click="add_server">
                 <note-storage-service-component
                     v-for="storage in storages"
+                    :key="storage.pk"
                     :service="storage.service"
                     :description="storage.description"
                     :is-default="storage.is_default"
                     :source="storage.source"
                     @toggle="toggle_any"
+                    :is-new="storage.isNew"
                 ></note-storage-service-component>
             `,
             methods: {
@@ -122,6 +125,11 @@
                     }
                     this.uncollapsed_component = component;
                 },
+                add_server(event) {
+                    this.storages.unshift(
+                        {service: '', description: '', is_default: '', source: '', pk: '10', isNew: 'true'},
+                    );
+                }
             },
         }
 		</script>

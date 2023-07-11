@@ -178,14 +178,14 @@ class NoteStorageServiceListView(View):
     def get(self, request):
         storages = NoteStorageServiceModel.objects
         if request.user.is_authenticated:
-            storages = storages.filter(user=request.user).values('service', 'description', 'is_default', 'source')
+            storages = storages.filter(user=request.user).values('service', 'description', 'is_default', 'source', 'pk')
         else:
-            storages = storages.values('service', 'description', 'source')
+            storages = storages.values('service', 'description', 'source', 'pk')
 
         test_storages = [
-            {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first'},
-            {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy'},
-            {'service': 'Typesense', 'description': 'для поиска по холстам', 'is_default': False, 'source': 'for_searching'},
+            {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first', 'pk': 1},
+            {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy', 'pk': 2},
+            {'service': 'Typesense', 'description': 'для поиска по холстам', 'is_default': False, 'source': 'for_searching', 'pk': 3},
         ]
 
         context = {
