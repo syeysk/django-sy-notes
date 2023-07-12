@@ -176,7 +176,7 @@ class NoteListView(View):
 
 class NoteStorageServiceListView(View):
     def get(self, request):
-        storages = NoteStorageServiceModel.objects
+        storages = NoteStorageServiceModel.objects.order_by('-pk')
         if request.user.is_authenticated:
             storages = storages.filter(user=request.user).values('service', 'description', 'is_default', 'source', 'pk')
         else:
