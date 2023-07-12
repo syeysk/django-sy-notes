@@ -48,13 +48,13 @@
             template: `
                 <div style="margin-bottom: 3px;" :class="{'collapsed': !collapsed}">
                     <div class="storage_header" @click="toggle">
-                        <div style="font-weight: 200;">
+                        <div style="color: #afafaf; font-size: calc(var(--bs-body-font-size) - 1px);">
                             <span>[[ mSource ]]</span>
                             |
                             <span>[[ service ]]</span>
                             <span :class="{'d-none': !mIsDefault}"> | по-умолчанию</span>
                         </div>
-                        <span :class="{'d-none': !collapsed}">[[ mDescription ]]</span>
+                        <span :class="{'d-none': !collapsed}" style="font-size: calc(var(--bs-body-font-size) + 2px);">[[ mDescription ]]</span>
                         <svg class="bi collapse-icon" role="img" title="Open form" style="float: right;">
                             <use xlink:href="{% static 'pages/extern/bootstrap-icons.svg' %}#triangle-fill"/>
                         </svg>
@@ -126,8 +126,11 @@
                     this.uncollapsed_component = component;
                 },
                 add_server(event) {
+                    if (this.uncollapsed_component) {
+                        this.uncollapsed_component.collapsed = true;
+                    }
                     this.storages.unshift(
-                        {service: '', description: '', is_default: '', source: '', pk: '', isNew: 'true'},
+                        {service: '', description: '', is_default: '', source: '', pk: this.storages.length, isNew: 'true'},
                     );
                 }
             },
