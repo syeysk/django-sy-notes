@@ -183,6 +183,7 @@ class NoteStorageServiceListView(View):
         else:
             storages = storages.values('service', 'description', 'source', 'pk')
 
+        storages = list(storages)
         storages.extend([
             {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first', 'pk': 1},
             {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy', 'pk': 2},
