@@ -129,9 +129,11 @@
                     if (this.uncollapsed_component) {
                         this.uncollapsed_component.collapsed = true;
                     }
-                    this.storages.unshift(
-                        {service: '', description: '', is_default: '', source: '', pk: this.storages.length, isNew: 'true'},
-                    );
+                    if (this.storages[0].pk) {
+                        this.storages.unshift(
+                            {service: '', description: '', is_default: '', source: '', pk: '', isNew: 'true'},
+                        );
+                    }
                 }
             },
         }
