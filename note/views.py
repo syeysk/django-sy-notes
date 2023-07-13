@@ -20,6 +20,7 @@ from note.load_from_github import prepare_to_search, get_root_url, get_uploader
 from note.models import Note
 from note.models import NoteStorageServiceModel
 from note.serializers import NoteEditViewSerializer
+from note.serializers import NoteStorageServiceSerializer
 
 
 def separate_yaml(content):
@@ -182,13 +183,25 @@ class NoteStorageServiceListView(View):
         else:
             storages = storages.values('service', 'description', 'source', 'pk')
 
-        test_storages = [
+        storages.extend([
             {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first', 'pk': 1},
             {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy', 'pk': 2},
             {'service': 'Typesense', 'description': 'для поиска по холстам', 'is_default': False, 'source': 'for_searching', 'pk': 3},
-        ]
+        ])
 
         context = {
-            'storage_services': test_storages,
+            'storage_services': storages,
         }
         return render(request, 'pages/note_storage_services.html', context)
+
+    def post(self, request, pk=None):
+        if pk:
+            instance = NoteStorageServiceModel.objects.get(pk=pk)
+            serializer = NoteStorageServiceSerializer(instance, data=request.data)
+        else:
+            serializer = NoteStorageServiceSerializer(data=request.data)
+
+        serializer.save()
+
+        response_data = {}
+        return Response(status=status.HTTP_200_OK, data=response_data)

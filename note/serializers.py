@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from note.models import NoteStorageServiceModel
+
 
 class NoteEditViewSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=255, required=False, help_text='Текущее имя заметки')
@@ -28,3 +30,11 @@ class UploaderTypesenseSerializer(serializers.Serializer):
 
 class UploaderFirestoreSerializer(serializers.Serializer):
     certificate = serializers.JSONField(label='Сертификат доступа', default='{}')
+
+
+class NoteStorageServiceSerializer(serializers.ModelSerializer):
+    service = serializers.CharField(default='test')
+
+    class Meta:
+        model = NoteStorageServiceModel
+        fields = ['service', 'description', 'is_default', 'source']
