@@ -31,6 +31,11 @@
 
     {{ storage_services|json_script:'storage_services' }}
 
+    <script>
+        var URL_ADD_NOTE = 'storage_services/';
+        var CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
     <div id="app_note_storage_services_id"></div>
 
     <script>
@@ -82,7 +87,7 @@
                              </div>
                         </div>
 
-                        <input type="button" value="Сохранить" class="btn btn-secondary">
+                        <input type="button" value="Сохранить" class="btn btn-secondary" @click="save">
 
                     </form>
                 </div>
@@ -91,6 +96,39 @@
                 toggle(event) {
                     this.collapsed = this.collapsed ? false : true;
                     this.$emit('toggle', this, this.collapsed);
+                },
+                save(event) {
+                    let self = this;
+                    $.ajax({
+                        url: URL_ADD_NOTE + this.$.vnode.key,
+                        headers: {
+                            "X-CSRFToken": CSRF_TOKEN,
+                        },
+                        dataType: 'json',
+                        data: {
+                            description: this.description,
+                            source: this.source,
+                            is_default: this.isDefault,
+                            service: this.service,
+                        },
+                        success: function(result) {
+                            set_valid_field(event.target.form, result.updated_fields);
+                            self.$.vnode.key = result.id;
+                        },
+                        statusCode: {
+                            500: function(xhr) {
+                                self.errorMessage = 'ошибка сохранения'
+                            },
+                            400: function(xhr) {
+                                set_invalid_field(event.target.form, xhr.responseJSON);
+                                self.errorMessage = 'сохранение в разработке...'
+                            },
+                            404: function(xhr) {
+                                self.errorMessage = 'заметка с таким именем не существует'
+                            },
+                        },
+                        method: "post"
+                    });
                 },
             },
         }
