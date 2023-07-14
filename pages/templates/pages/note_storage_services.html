@@ -106,10 +106,10 @@
                         },
                         dataType: 'json',
                         data: {
-                            description: this.description,
-                            source: this.source,
-                            is_default: this.isDefault,
-                            service: this.service,
+                            description: this.mDescription,
+                            source: this.mSource,
+                            is_default: this.mIsDefault,
+                            service: this.mService,
                         },
                         success: function(result) {
                             set_valid_field(event.target.form, result.updated_fields);

@@ -198,10 +198,11 @@ class NoteStorageServiceListView(View):
     def post(self, request, pk=None):
         if pk:
             instance = NoteStorageServiceModel.objects.get(pk=pk)
-            serializer = NoteStorageServiceSerializer(instance, data=request.data)
+            serializer = NoteStorageServiceSerializer(instance, data=request.POST)
         else:
-            serializer = NoteStorageServiceSerializer(data=request.data)
+            serializer = NoteStorageServiceSerializer(data=request.POST)
 
+        serializer.is_valid(raise_exception=True)
         serializer.save()
 
         response_data = {}
