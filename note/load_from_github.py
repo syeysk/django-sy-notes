@@ -10,8 +10,7 @@ from django.db.models import Q
 from firebase_admin import credentials, firestore
 from typesense import Client
 
-from note.models import Note, prepare_to_search
-from note.serializers import UploaderFirestoreSerializer, UploaderTypesenseSerializer
+from note.serializers_uploader import UploaderFirestoreSerializer, UploaderTypesenseSerializer
 
 
 def get_root_url(
@@ -84,7 +83,11 @@ def download_from_github_directory(owner, repo, directory, token):
             yield file_name, file_content
 
 
-class UploaderFirestore:
+class BaseUploader:
+    pass
+
+
+class UploaderFirestore(BaseUploader):
     verbose_name = 'Firestore'
     serializer = UploaderFirestoreSerializer
     MAX_PORTION_SIZE = 500
@@ -106,7 +109,7 @@ class UploaderFirestore:
         self.batch.commit()
 
 
-class UploaderTypesense:
+class UploaderTypesense(BaseUploader):
     verbose_name = 'Typesense'
     serializer = UploaderTypesenseSerializer
     MAX_PORTION_SIZE = 500
@@ -167,7 +170,7 @@ class UploaderTypesense:
         return dict(results=results, count=res['found'])
 
 
-class UploaderDjangoServer:
+class UploaderDjangoServer(BaseUploader):
     verbose_name = 'Микросервис заметок'
     MAX_PORTION_SIZE = 400
     portion = []
@@ -176,9 +179,11 @@ class UploaderDjangoServer:
         pass
 
     def clear(self):
+        from note.models import Note
         Note.objects.all().delete()
 
     def add_to_portion(self, file_name, file_content):
+        from note.models import Note
         fields = Note(
             title=file_name,
             content=file_content,
@@ -187,6 +192,7 @@ class UploaderDjangoServer:
         self.portion.append(fields)
 
     def commit(self):
+        from note.models import Note
         Note.objects.bulk_create(self.portion, self.MAX_PORTION_SIZE)
         self.portion.clear()
 
@@ -199,6 +205,7 @@ class UploaderDjangoServer:
         file_name=None,
         file_content=None,
     ):
+        from note.models import Note, prepare_to_search
         filter = {}
         if file_name:
             file_name = prepare_to_search(file_name)
@@ -220,6 +227,7 @@ class UploaderDjangoServer:
         return dict(results=results, count=count)
 
     def get(self, title):
+        from note.models import Note
         notes = Note.objects.filter(title=title)
         if notes.exists():
             note = notes[0]
@@ -228,12 +236,14 @@ class UploaderDjangoServer:
         return None
 
     def add(self, title, content):
+        from note.models import Note
         note = Note(title=title, content=content)
         note.fetch_search_fields()
         note.save()
         return {'title': note.title, 'content': note.content}
 
     def edit(self, title, new_title=None, new_content=None):
+        from note.models import Note
         note = Note.objects.get(title=title)
         updated_fields = []
         if new_title and note.title != new_title:
@@ -251,6 +261,7 @@ class UploaderDjangoServer:
         return updated_fields
 
     def delete(self, title):
+        from note.models import Note
         note = Note.objects.get(title=title)
         note.delete()
 
@@ -279,6 +290,16 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 def get_uploader(uploader_name, args_uploader):
     class_uploader = 'Uploader{}'.format(uploader_name.title().replace('_', ''))
     return globals()[class_uploader](*args_uploader)
+
+
+def get_service_names():
+    service_names = []
+    for subclass in BaseUploader.__subclasses__():
+        service_names.append(
+            (subclass.__name__[8:], subclass.verbose_name),
+        )
+
+    return service_names
 
 
 def get_storage_service(source=None, user=None):

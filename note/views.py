@@ -16,11 +16,16 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from note.credentials import args_uploader
-from note.load_from_github import prepare_to_search, get_root_url, get_uploader
-from note.models import Note
-from note.models import NoteStorageServiceModel
-from note.serializers import NoteEditViewSerializer
-from note.serializers import NoteStorageServiceSerializer
+from note.load_from_github import get_root_url, get_uploader
+from note.models import (
+    Note,
+    NoteStorageServiceModel,
+    prepare_to_search,
+)
+from note.serializers import (
+    NoteEditViewSerializer,
+    NoteStorageServiceSerializer,
+)
 
 
 def separate_yaml(content):
@@ -186,8 +191,7 @@ class NoteStorageServiceListView(APIView):
         else:
             storages = storages.values(*common_values)
 
-        service_names = [('typesense', 'Typesense'), ('firebase', 'Firebase')]
-        context = {'storage_services': list(storages), 'service_names': service_names}
+        context = {'storage_services': list(storages), 'service_names': list(NoteStorageServiceModel.CHOICES_SERVICE)}
         return render(request, 'pages/note_storage_services.html', context)
 
     @staticmethod

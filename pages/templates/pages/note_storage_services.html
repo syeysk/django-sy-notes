@@ -2,8 +2,8 @@
 {% load markdownify %}
 {% load static %}
 
-{% block title %}Сервисы хранилищ{% endblock %}
-{% block page_title %} Сервисы хранилищ {% endblock %}
+{% block title %}Источники заметок{% endblock %}
+{% block page_title %}Источники заметок{% endblock %}
 
 {% block content %}
     <style>
@@ -71,7 +71,7 @@
                     <form class="storage_body" :class="{'d-none': collapsed}">
 
                         <select v-if="mIsNew" v-model="mService" name="service" class="form-select form-select-lg mb-3">
-                            <option value="" selected disabled>Адаптер</option>
+                            <option value="" selected disabled>Адаптер источника</option>
                             <option
                                 v-for="service_name in service_names"
                                 :value="service_name[0]"
@@ -81,14 +81,14 @@
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
                                 <input v-model="mDescription" class="form-control" type="input" name="description" id="description-field">
-                                <label for="description-field" class="form-label">Описание</label>
+                                <label for="description-field" class="form-label">Описание источника</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="source-group">
                             <div class="form-floating">
                                 <input v-model="mSource" class="form-control" type="input" name="source" id="source-field">
-                                <label for="source-field" class="form-label">Код источника</label>
+                                <label for="source-field" class="form-label">Кодовое имя источника</label>
                              </div>
                         </div>
 

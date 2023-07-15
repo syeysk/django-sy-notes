@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from note.load_from_github import get_service_names
+
 
 def prepare_to_search(value):
     return value.lower().replace('ё', 'е')
@@ -23,7 +25,8 @@ class Note(models.Model):
 
 
 class NoteStorageServiceModel(models.Model):
-    service = models.CharField(verbose_name='Внешний сервис хранилища', choices=None, max_length=30)
+    CHOICES_SERVICE = get_service_names()
+    service = models.CharField(verbose_name='Внешний сервис хранилища', max_length=30, choices=CHOICES_SERVICE, blank=False)
     credentials = models.JSONField(verbose_name='Данные для полключения', default=dict)
     description = models.CharField(verbose_name='Комментарий', max_length=100, default='')
     is_default = models.BooleanField(
