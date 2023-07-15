@@ -30,6 +30,7 @@
 		</style>
 
     {{ storage_services|json_script:'storage_services' }}
+    {{ service_names|json_script:'service_names' }}
 
     <script>
         var URL_ADD_NOTE = 'storage_services/';
@@ -44,9 +45,12 @@
             data() {
                 return {
                     collapsed: this.isNew ? false : true,
+                    mIsNew: this.isNew,
                     mDescription: this.description,
                     mSource: this.source,
                     mIsDefault: this.isDefault,
+                    mService: this.service,
+                    service_names: JSON.parse(document.getElementById('service_names').textContent),
                 };
             },
             emits: ['toggle'],
@@ -56,7 +60,7 @@
                         <div style="color: #afafaf; font-size: calc(var(--bs-body-font-size) - 1px);">
                             <span>[[ mSource ]]</span>
                             |
-                            <span>[[ service ]]</span>
+                            <span>[[ mService ]]</span>
                             <span :class="{'d-none': !mIsDefault}"> | по-умолчанию</span>
                         </div>
                         <span :class="{'d-none': !collapsed}" style="font-size: calc(var(--bs-body-font-size) + 2px);">[[ mDescription ]]</span>
@@ -66,23 +70,31 @@
                     </div>
                     <form class="storage_body" :class="{'d-none': collapsed}">
 
+                        <select v-if="mIsNew" v-model="mService" name="service" class="form-select form-select-lg mb-3">
+                            <option value="" selected disabled>Адаптер</option>
+                            <option
+                                v-for="service_name in service_names"
+                                :value="service_name[0]"
+                            >[[ service_name[1] ]]</option>
+                        </select>
+
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
-                                <input v-model="mDescription" class="form-control" type="input" value="" name="description" id="description-field">
+                                <input v-model="mDescription" class="form-control" type="input" name="description" id="description-field">
                                 <label for="description-field" class="form-label">Описание</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="source-group">
                             <div class="form-floating">
-                                <input v-model="mSource" class="form-control" type="input" value="" name="source" id="source-field">
+                                <input v-model="mSource" class="form-control" type="input" name="source" id="source-field">
                                 <label for="source-field" class="form-label">Код источника</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="is_default-group">
                             <div class="form-check form-switch">
-                                <input v-model="mIsDefault" class="form-check-input" type="checkbox" value="" name="is_default" id="is_default-field">
+                                <input v-model="mIsDefault" class="form-check-input" type="checkbox" name="is_default" id="is_default-field">
                                 <label for="is_default-field" class="form-check-label">Использовать по-умолчанию</label>
                              </div>
                         </div>
@@ -114,6 +126,7 @@
                         success: function(result) {
                             set_valid_field(event.target.form, result.updated_fields);
                             self.$.vnode.key = result.id;
+                            self.mIsNew = false;
                         },
                         statusCode: {
                             500: function(xhr) {

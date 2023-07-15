@@ -186,12 +186,14 @@ class NoteStorageServiceListView(APIView):
         else:
             storages = storages.values(*common_values)
 
-        context = {'storage_services': list(storages)}
+        service_names = [('typesense', 'Typesense'), ('firebase', 'Firebase')]
+        context = {'storage_services': list(storages), 'service_names': service_names}
         return render(request, 'pages/note_storage_services.html', context)
 
     @staticmethod
     def post(request, pk=None):
         if pk:
+            # TODO: проверять request.user == instance.user
             instance = NoteStorageServiceModel.objects.get(pk=pk)
             serializer = NoteStorageServiceSerializer(instance, data=request.POST)
             serializer.is_valid(raise_exception=True)
