@@ -175,35 +175,35 @@ class NoteListView(View):
         return render(request, 'pages/note_list.html', context)
 
 
-class NoteStorageServiceListView(View):
-    def get(self, request):
+class NoteStorageServiceListView(APIView):
+
+    @staticmethod
+    def get(request):
         storages = NoteStorageServiceModel.objects.order_by('-pk')
+        common_values = ['service', 'description', 'source', 'pk']
         if request.user.is_authenticated:
-            storages = storages.filter(user=request.user).values('service', 'description', 'is_default', 'source', 'pk')
+            storages = storages.filter(user=request.user).values('is_default', *common_values)
         else:
-            storages = storages.values('service', 'description', 'source', 'pk')
+            storages = storages.values(*common_values)
 
-        storages = list(storages)
-        storages.extend([
-            {'service': 'Typesense', 'description': 'моя первая база', 'is_default': False, 'source': 'first', 'pk': 1},
-            {'service': 'Firebase', 'description': 'мой дневник', 'is_default': True, 'source': 'dairy', 'pk': 2},
-            {'service': 'Typesense', 'description': 'для поиска по холстам', 'is_default': False, 'source': 'for_searching', 'pk': 3},
-        ])
-
-        context = {
-            'storage_services': storages,
-        }
+        context = {'storage_services': list(storages)}
         return render(request, 'pages/note_storage_services.html', context)
 
-    def post(self, request, pk=None):
+    @staticmethod
+    def post(request, pk=None):
         if pk:
             instance = NoteStorageServiceModel.objects.get(pk=pk)
             serializer = NoteStorageServiceSerializer(instance, data=request.POST)
+            serializer.is_valid(raise_exception=True)
+            updated_fields = [
+                name for name, value in serializer.validated_data.items() if getattr(instance, name) != value
+            ]
+            serializer.save()
         else:
             serializer = NoteStorageServiceSerializer(data=request.POST)
+            serializer.is_valid(raise_exception=True)
+            updated_fields = serializer.fields.keys()
+            instance = serializer.save(user=request.user)
 
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        response_data = {}
+        response_data = {'id': instance.pk, 'updated_fields': updated_fields}
         return Response(status=status.HTTP_200_OK, data=response_data)

@@ -121,10 +121,9 @@
                             },
                             400: function(xhr) {
                                 set_invalid_field(event.target.form, xhr.responseJSON);
-                                self.errorMessage = 'сохранение в разработке...'
                             },
                             404: function(xhr) {
-                                self.errorMessage = 'заметка с таким именем не существует'
+                                self.errorMessage = 'хранилище с таким именем не существует'
                             },
                         },
                         method: "post"

@@ -34,10 +34,15 @@ class NoteStorageServiceModel(models.Model):
         ),
         default=False,
     )
-    user = models.OneToOneField(User, null=False, on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     source = models.CharField(
         verbose_name='Уникальный идентификатор',
         max_length=30,
         unique=True,
+        db_index=True,
         help_text='Используется для указания хранилища при поиске, редактировании и отображении заметок',
     )
+
+    class Meta:
+        verbose_name = 'Хранилище заметок'
+        verbose_name_plural = 'Хранилища заметок'
