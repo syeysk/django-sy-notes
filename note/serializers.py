@@ -18,4 +18,4 @@ class NoteEditViewSerializer(serializers.Serializer):
 class NoteStorageServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoteStorageServiceModel
-        fields = ['service', 'description', 'is_default', 'source']
+        fields = ['service', 'description', 'is_default', 'source', 'credentials']

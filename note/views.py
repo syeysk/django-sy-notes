@@ -187,7 +187,7 @@ class NoteStorageServiceListView(APIView):
         storages = NoteStorageServiceModel.objects.order_by('-pk')
         common_values = ['service', 'description', 'source', 'pk']
         if request.user.is_authenticated:
-            storages = storages.filter(user=request.user).values('is_default', *common_values)
+            storages = storages.filter(user=request.user).values('is_default', 'credentials', *common_values)
         else:
             storages = storages.values(*common_values)
 

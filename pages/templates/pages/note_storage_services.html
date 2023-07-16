@@ -41,12 +41,13 @@
 
     <script>
         NoteStorageServiceComponent = {
-            props:  ['service', 'source', 'description', 'isDefault', 'isNew'],
+            props:  ['service', 'source', 'description', 'credentials', 'isDefault', 'isNew'],
             data() {
                 return {
                     collapsed: this.isNew ? false : true,
                     mIsNew: this.isNew,
                     mDescription: this.description,
+                    mCredentials: this.credentials,
                     mSource: this.source,
                     mIsDefault: this.isDefault,
                     mService: this.service,
@@ -70,13 +71,15 @@
                     </div>
                     <form class="storage_body" :class="{'d-none': collapsed}">
 
-                        <select v-if="mIsNew" v-model="mService" name="service" class="form-select form-select-lg mb-3">
-                            <option value="" selected disabled>Адаптер источника</option>
+                        <select :disabled="!mIsNew" v-model="mService" class="form-select form-select-lg mb-3">
+                            <option value="" :selected="mIsNew" disabled>Адаптер источника</option>
                             <option
                                 v-for="service_name in service_names"
                                 :value="service_name[0]"
+                                :selected="service_name[0] == service"
                             >[[ service_name[1] ]]</option>
                         </select>
+                        <input type="hidden" name="service" v-model="mService">
 
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
@@ -99,6 +102,11 @@
                              </div>
                         </div>
 
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1">Данные для подключения</label>
+                            <textarea name="credentials" class="form-control" id="exampleFormControlTextarea1" rows="3" v-model="mCredentials">[[ mCredentials ]]</textarea>
+                        </div>
+
                         <input type="button" value="Сохранить" class="btn btn-secondary" @click="save">
 
                     </form>
@@ -113,16 +121,9 @@
                     let self = this;
                     $.ajax({
                         url: URL_ADD_NOTE + this.$.vnode.key,
-                        headers: {
-                            "X-CSRFToken": CSRF_TOKEN,
-                        },
+                        headers: {"X-CSRFToken": CSRF_TOKEN},
                         dataType: 'json',
-                        data: {
-                            description: this.mDescription,
-                            source: this.mSource,
-                            is_default: this.mIsDefault,
-                            service: this.mService,
-                        },
+                        data: $(event.target.form).serialize(),
                         success: function(result) {
                             set_valid_field(event.target.form, result.updated_fields);
                             self.$.vnode.key = result.id;
@@ -164,6 +165,7 @@
                     :description="storage.description"
                     :is-default="storage.is_default"
                     :source="storage.source"
+                    :credentials="JSON.stringify(storage.credentials)"
                     @toggle="toggle_any"
                     :is-new="storage.isNew"
                 ></note-storage-service-component>
@@ -176,13 +178,19 @@
                     this.uncollapsed_component = component;
                 },
                 add_server(event) {
-                    if (this.uncollapsed_component) {
+                    if (this.uncollapsed_component && !this.uncollapsed_component.isNew) {
                         this.uncollapsed_component.collapsed = true;
                     }
                     if (this.storages[0].pk) {
-                        this.storages.unshift(
-                            {service: '', description: '', is_default: '', source: '', pk: '', isNew: 'true'},
-                        );
+                        this.storages.unshift({
+                            service: '',
+                            description: '',
+                            is_default: '',
+                            source: '',
+                            pk: '',
+                            isNew: true,
+                            credentials: {},
+                        });
                     }
                 }
             },
