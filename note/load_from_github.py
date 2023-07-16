@@ -1,4 +1,3 @@
-import json
 import io
 import os.path
 import zipfile
@@ -107,6 +106,18 @@ class UploaderFirestore(BaseUploader):
 
     def commit(self):
         self.batch.commit()
+
+    def get_list(self, page_number, count_on_page):
+        ref = self.db.collection('knowledge')
+        notes = []
+        offset = (page_number - 1) * count_on_page
+        for index, ref_document in enumerate(ref.limit(count_on_page).offset(offset).get()):
+            if index == count_on_page:
+                break
+
+            notes.append({'title': ref_document.id, 'content': ref_document.get('text')})
+
+        return notes, {'total_count': ref.count().get()[0][0].value}
 
 
 class UploaderTypesense(BaseUploader):
@@ -229,11 +240,8 @@ class UploaderDjangoServer(BaseUploader):
     def get(self, title):
         from note.models import Note
         notes = Note.objects.filter(title=title)
-        if notes.exists():
-            note = notes[0]
-            return {'title': note.title, 'content': note.content}
-
-        return None
+        note = notes.first()
+        return {'title': note.title, 'content': note.content} if note else None
 
     def add(self, title, content):
         from note.models import Note
@@ -265,10 +273,21 @@ class UploaderDjangoServer(BaseUploader):
         note = Note.objects.get(title=title)
         note.delete()
 
+    def get_list(self, page_number, count_on_page):
+        from django.core.paginator import Paginator
+        from note.models import Note
+        notes = Note.objects.all()
+        paginator = Paginator(notes, count_on_page)
+        page = paginator.page(page_number)
+        return (
+            [{'title': note.title, 'content': note.content} for note in page.object_list],
+            {'num_pages': paginator.num_pages}
+        )
 
-def run_initiator(downloader, args_downloader, uploader, args_uploader):
+
+def run_initiator(downloader, args_downloader, source_to):
     downloader = globals()['download_from_{}'.format(downloader)]
-    uploader = get_uploader(uploader, args_uploader)
+    uploader, _ = get_storage_service(source_to)
     uploader.clear()
     portion_size = 0
     total_size = 0
@@ -287,11 +306,6 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
     print('uploading is finished. Totally uploaded:', total_size + portion_size)
 
 
-def get_uploader(uploader_name, args_uploader):
-    class_uploader = 'Uploader{}'.format(uploader_name.title().replace('_', ''))
-    return globals()[class_uploader](*args_uploader)
-
-
 def get_service_names():
     service_names = []
     for subclass in BaseUploader.__subclasses__():
@@ -308,19 +322,20 @@ def get_storage_service(source=None, user=None):
 
     storage = None
     if user and user.is_authenticated and source:
-        storage = NoteStorageServiceModel.objects.filter(user=user, source=source)
+        storage = NoteStorageServiceModel.objects.filter(user=user, source=source).first()
     elif user and user.is_authenticated:
-        storage = NoteStorageServiceModel.objects.filter(user=user, is_default=True)
+        storage = NoteStorageServiceModel.objects.filter(user=user, is_default=True).first()
     elif source:
-        storage = NoteStorageServiceModel.objects.filter(source=source)
+        storage = NoteStorageServiceModel.objects.filter(source=source).first()
 
     if storage:
         service_name = storage.service
-        service_credentials = json.loads(storage.credentials)
+        service_credentials = storage.credentials
         source = storage.source
     else:
         service_name = settings.DEFAULT_UPLOADER
         service_credentials = {}
-        source = 'django_server'
+        source = settings.DEFAULT_SOURCE
 
-    return get_uploader(service_name, service_credentials), source
+    uploader_class = globals()['Uploader{}'.format(service_name)]
+    return uploader_class(**service_credentials), source

@@ -13,15 +13,3 @@ args_downloader = {
         settings.GITHUB_TOKEN,
     ),
 }
-args_uploader = {
-    'firestore': (
-        settings.FIRESTORE_CERTIFICATE,
-    ),
-    'typesense': (
-        settings.TYPESENSE_SERVER,
-        settings.TYPESENSE_PORT,
-        settings.TYPESENSE_PROTOCOL,
-        settings.TYPESENSE_API_KEY,
-    ),
-    'django_server': set(),
-}

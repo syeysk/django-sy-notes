@@ -4,8 +4,8 @@ from urllib.parse import unquote
 import yaml
 import requests
 from django.conf import settings
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+from django.shortcuts import render
 from django.views import View
 from drf_spectacular.utils import extend_schema
 from markdownify.templatetags.markdownify import markdownify
@@ -15,8 +15,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.credentials import args_uploader
-from note.load_from_github import get_root_url, get_uploader
+from note.load_from_github import get_root_url
+from note.load_from_github import get_storage_service
 from note.models import (
     Note,
     NoteStorageServiceModel,
@@ -124,9 +124,15 @@ def note_hook(request):
 class NoteEditorView(APIView):
     @staticmethod
     def get(request, quoted_title):
-        note = get_object_or_404(Note, title=unquote(quoted_title))
-        content_yaml, content_md = separate_yaml(note.content)
-        context = {'note': {'title': note.title, 'content': note.content, 'content_html': markdownify(content_md)}}
+        uploader, _ = get_storage_service(request.GET.get('source'))
+        note = uploader.get(unquote(quoted_title))
+        if not note:
+            raise Http404('Заметка не найдена')
+
+        _, content_md = separate_yaml(note['content'])
+        context = {
+            'note': {'title': note['title'], 'content': note['content'], 'content_html': markdownify(content_md)},
+        }
         return render(request, 'pages/note_editor.html', context)
 
     @staticmethod
@@ -141,12 +147,11 @@ class NoteEditorView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        title = unquote(quoted_title) #data.get('title')
+        title = unquote(quoted_title)
         new_title = data.get('new_title')
         new_content = data.get('new_content')
 
-        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
-        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        uploader, _ = get_storage_service(request.GET.get('source'))
         if not uploader.get(title=title):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -165,14 +170,15 @@ class NoteEditorView(APIView):
 class NoteListView(View):
     def get(self, request):
         page_number = request.GET.get('p', '1')
+        source = request.GET.get('source')
         page_number = int(page_number) if page_number.isdecimal() else 1
+        count_on_page = 20
 
-        notes = Note.objects.all()
-        paginator = Paginator(notes, 20)
-        page = paginator.page(page_number)
+        uploader, source = get_storage_service(source)
+        notes, meta = uploader.get_list(page_number, count_on_page)
         context = {
-            'notes': page.object_list,
-            'last_page': paginator.num_pages,
+            'notes': notes,
+            'last_page': meta.get('num_pages') or meta['total_count'] // count_on_page,
             'current_page': page_number,
             'next_page': page_number + 1,
             'prev_page': page_number - 1,
