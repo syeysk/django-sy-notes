@@ -111,10 +111,7 @@ class UploaderFirestore(BaseUploader):
         ref = self.db.collection('knowledge')
         notes = []
         offset = (page_number - 1) * count_on_page
-        for index, ref_document in enumerate(ref.limit(count_on_page).offset(offset).get()):
-            if index == count_on_page:
-                break
-
+        for ref_document in ref.limit(count_on_page).offset(offset).get():
             notes.append({'title': ref_document.id, 'content': ref_document.get('text')})
 
         return notes, {'total_count': ref.count().get()[0][0].value}
