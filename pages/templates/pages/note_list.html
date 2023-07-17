@@ -6,12 +6,28 @@
 {% block page_title %}Заметки{% endblock %}
 
 {% block content %}
+
     <p>
         Совокупность заметок является базой знаний. Поиск по базе доступен через телеграм-бот и дискорд-сервер.
     </p>
 
+    <script>
+        function set_search(name, value) {
+            search = new URLSearchParams(window.location.search);
+            if (value) search.set(name, value);
+            else search.delete(name);
+            window.location.search = search.toString();
+        }
+		</script>
+
+    <select name="source" onchange="set_search(this.name, this.value)" class="form-select form-select-lg mb-3">
+        {% for source_dict in sources %}
+            <option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
+        {% endfor %}
+		</select>
+
 		{% for note in notes %}
-        <h3><a href="{% url 'note_editor' note.title %}">{{ note.title }}</a></h3>
+        <h3><a href="{% url 'note_editor' note.title %}{% if source %}?source={{ source }}{% endif %}">{{ note.title }}</a></h3>
 				<p>{{ note.content|slice:":1000" }}</p>
 		{% endfor %}
 

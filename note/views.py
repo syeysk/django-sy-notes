@@ -170,11 +170,10 @@ class NoteEditorView(APIView):
 class NoteListView(View):
     def get(self, request):
         page_number = request.GET.get('p', '1')
-        source = request.GET.get('source')
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
 
-        uploader, source = get_storage_service(source)
+        uploader, source = get_storage_service(request.GET.get('source'), request.user)
         notes, meta = uploader.get_list(page_number, count_on_page)
         context = {
             'notes': notes,
@@ -182,6 +181,8 @@ class NoteListView(View):
             'current_page': page_number,
             'next_page': page_number + 1,
             'prev_page': page_number - 1,
+            'sources': NoteStorageServiceModel.objects.values('source', 'description'),
+            'source': source,
         }
         return render(request, 'pages/note_list.html', context)
 
