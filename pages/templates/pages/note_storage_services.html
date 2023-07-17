@@ -52,6 +52,7 @@
                     mIsDefault: this.isDefault,
                     mService: this.service,
                     service_names: JSON.parse(document.getElementById('service_names').textContent),
+                    badMessage: '',
                 };
             },
             emits: ['toggle'],
@@ -107,6 +108,10 @@
                             <textarea name="credentials" class="form-control" id="exampleFormControlTextarea1" rows="3" v-model="mCredentials">[[ mCredentials ]]</textarea>
                         </div>
 
+                        <div class="alert alert-danger" role="alert" :class="{'d-none': !badMessage}">
+                            [[ badMessage ]]
+                        </div>
+
                         <input type="button" value="Сохранить" class="btn btn-secondary" @click="save">
 
                     </form>
@@ -128,16 +133,18 @@
                             set_valid_field(event.target.form, result.updated_fields);
                             self.$.vnode.key = result.id;
                             self.mIsNew = false;
+                            self.badMessage = '';
                         },
                         statusCode: {
                             500: function(xhr) {
-                                self.errorMessage = 'ошибка сохранения'
+                                self.badMessage = 'ошибка сервера'
                             },
                             400: function(xhr) {
                                 set_invalid_field(event.target.form, xhr.responseJSON);
+                                self.badMessage = ''
                             },
                             404: function(xhr) {
-                                self.errorMessage = 'хранилище с таким именем не существует'
+                                self.badMessage = 'хранилище с таким именем не существует'
                             },
                         },
                         method: "post"
@@ -157,7 +164,8 @@
             },
             components: {NoteStorageServiceComponent},
             template: `
-                <input type="button" value="Добавить" @click="add_server">
+                <input type="button" value="Добавить" @click="add_server" class="btn btn-primary">
+                <br><br>
                 <note-storage-service-component
                     v-for="storage in storages"
                     :key="storage.pk"
