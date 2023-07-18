@@ -34,6 +34,7 @@
             },
             template: `
                 <form>
+                    <input name="source" type="hidden" value="{{ source }}">
                     <input name="title" v-model="mTitle" style="width:99%;">
                     <br><br>
                     <textarea name="content" v-model="mContent" style="width:99%;height:60vh;"></textarea>

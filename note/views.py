@@ -124,7 +124,7 @@ def note_hook(request):
 class NoteEditorView(APIView):
     @staticmethod
     def get(request, quoted_title):
-        uploader, _ = get_storage_service(request.GET.get('source'))
+        uploader, source = get_storage_service(request.COOKIES.get('source'))
         note = uploader.get(unquote(quoted_title))
         if not note:
             raise Http404('Заметка не найдена')
@@ -132,6 +132,7 @@ class NoteEditorView(APIView):
         _, content_md = separate_yaml(note['content'])
         context = {
             'note': {'title': note['title'], 'content': note['content'], 'content_html': markdownify(content_md)},
+            'source': source,
         }
         return render(request, 'pages/note_editor.html', context)
 
@@ -173,7 +174,7 @@ class NoteListView(View):
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
 
-        uploader, source = get_storage_service(request.GET.get('source'), request.user)
+        uploader, source = get_storage_service(request.COOKIES.get('source'), request.user)
         notes, meta = uploader.get_list(page_number, count_on_page)
         context = {
             'notes': notes,
