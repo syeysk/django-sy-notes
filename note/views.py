@@ -15,8 +15,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import get_root_url
-from note.load_from_github import get_storage_service
+from note.load_from_github import get_root_url, get_storage_service
 from note.models import (
     Note,
     NoteStorageServiceModel,

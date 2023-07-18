@@ -313,6 +313,10 @@ def get_service_names():
     return service_names
 
 
+def service_name_to_class(service_name):
+    return globals()['Uploader{}'.format(service_name)]
+
+
 def get_storage_service(source=None, user=None):
     """Функция получения объекта хранилища заметок"""
     from note.models import NoteStorageServiceModel
@@ -334,5 +338,5 @@ def get_storage_service(source=None, user=None):
         service_credentials = {}
         source = settings.DEFAULT_SOURCE
 
-    uploader_class = globals()['Uploader{}'.format(service_name)]
+    uploader_class = service_name_to_class(service_name)
     return uploader_class(**service_credentials), source

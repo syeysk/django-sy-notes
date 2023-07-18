@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 
 from note.models import NoteStorageServiceModel
@@ -10,7 +12,7 @@ class NoteEditViewSerializer(serializers.Serializer):
 
     def validate(self, data):
         if not data.get('new_title') and not data.get('new_content'):
-            raise serializers.ValidationError("required new_title or new_content, or both")
+            raise serializers.ValidationError('required new_title or new_content, or both')
 
         return data
 
@@ -19,3 +21,15 @@ class NoteStorageServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoteStorageServiceModel
         fields = ['service', 'description', 'is_default', 'source', 'credentials']
+
+    def validate(self, data):
+        from note.load_from_github import service_name_to_class
+
+        uploader_class = service_name_to_class(data['service'])
+        if hasattr(uploader_class, 'serializer'):
+            serializer = uploader_class.serializer(data=data['credentials'])
+            serializer.is_valid(raise_exception=False)
+            if serializer.errors:
+                raise serializers.ValidationError({'credentials': 'errors: {}'.format(json.dumps(serializer.errors))})
+
+        return data
