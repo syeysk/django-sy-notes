@@ -225,3 +225,10 @@ class NoteStorageServiceListView(APIView):
 
         response_data = {'id': instance.pk, 'updated_fields': updated_fields}
         return Response(status=status.HTTP_200_OK, data=response_data)
+
+
+class NoteImportExportView(APIView):
+    @staticmethod
+    def get(request):
+        context = {}
+        return render(request, 'pages/note_import_export.html', context)

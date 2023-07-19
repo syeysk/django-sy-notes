@@ -61,6 +61,10 @@
                     <li>
                         <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Источники</a>
                     </li>
+									  {% url 'note_import_export' as url %}
+                    <li>
+                        <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Импорт/экспорт</a>
+                    </li>
                 </ul>
             </li>
             {# {% url 'service_server' as url %}#}
