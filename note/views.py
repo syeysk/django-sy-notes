@@ -168,6 +168,11 @@ class NoteEditorView(APIView):
 
 
 class NoteListView(View):
+
+    @staticmethod
+    def calc_num_pages(total, on_page):
+        return total // on_page + (1 if total % on_page else 0)
+
     def get(self, request):
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1
@@ -177,7 +182,7 @@ class NoteListView(View):
         notes, meta = uploader.get_list(page_number, count_on_page)
         context = {
             'notes': notes,
-            'last_page': meta.get('num_pages') or meta['total_count'] // count_on_page,
+            'last_page': meta.get('num_pages') or self.calc_num_pages(meta['total_count'], count_on_page),
             'current_page': page_number,
             'next_page': page_number + 1,
             'prev_page': page_number - 1,

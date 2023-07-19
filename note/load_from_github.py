@@ -278,7 +278,7 @@ class UploaderDjangoServer(BaseUploader):
         page = paginator.page(page_number)
         return (
             [{'title': note.title, 'content': note.content} for note in page.object_list],
-            {'num_pages': paginator.num_pages}
+            {'num_pages': paginator.num_pages},
         )
 
 
