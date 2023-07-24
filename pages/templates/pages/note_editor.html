@@ -46,21 +46,19 @@
             computed: {
                 value: {
                     get() {
-                        if (this.noteCodeMirror == undefined) {
-                            console.log(1)
-                            return this.modelValue;
-                        } else {
-                            return this.noteCodeMirror.getValue();
-                            console.log(2)
-                        }
+                        return this.modelValue;
                     },
                     set(value) {
-                        this.$emit('update:modelValue', value);
                         if (this.noteCodeMirror == undefined) {
                             this.noteCodeMirror = CodeMirror.fromTextArea(
                                 this.$el,
                                 {theme: "default", lineNumbers: false, mode: "markdown", extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"}}
                             );
+                            let self = this;
+                            this.noteCodeMirror.getDoc().on(
+                                'change',
+                                 function(doc) {self.$emit('update:modelValue', doc.getValue());},
+                            )
                         }
                     },
                 }
