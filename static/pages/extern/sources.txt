@@ -11,3 +11,5 @@ Bootsrap icons:
 - https://github.com/twbs/icons/raw/main/bootstrap-icons.svg#<icon-name>
   or
 	https://github.com/twbs/icons/blob/main/icons/<icon-name>.svg
+
+- https://codemirror.net/codemirror.zip
