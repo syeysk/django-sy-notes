@@ -18,6 +18,7 @@ METRIC_SYSTEM_CODE = env.str('METRIC_SYSTEM_CODE', default='', multiline=True)
 ROOT_URLCONF = 'server.urls'
 WSGI_APPLICATION = 'server.wsgi.application'
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR.parent / 'static'
 SITE_URL = env('SITE_URL')
 
 API_TOKEN_SALT = env('API_TOKEN_SALT')
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'markdownify.apps.MarkdownifyConfig',
     'note',
     'pages',
+    'django_sy_framework.base',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +63,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'custom_auth.context_processors.extern_auth_services',
-                'pages.context_processors.additional_settings_options',
             ],
         },
     },
