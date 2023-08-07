@@ -5,6 +5,14 @@
 {% block title %}Источники заметок{% endblock %}
 {% block page_title %}Источники заметок{% endblock %}
 
+{% block start_of_head %}
+    <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
+    <script src="{% static 'base/extern/codemirror-5.65.14/mode/javascript/javascript.js' %}"></script>
+    <script src="{% static 'pages/code-mirror-component.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <style>
         .storage_header {
@@ -38,7 +46,9 @@
     </script>
 
     <div id="app_note_storage_services_id"></div>
+{% endblock %}
 
+{% block end_of_body %}
     <script>
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'credentials', 'isDefault', 'isNew'],
@@ -56,6 +66,7 @@
                 };
             },
             emits: ['toggle'],
+            components: {CodeMirrorComponent},
             template: `
                 <div style="margin-bottom: 3px;" :class="{'collapsed': !collapsed}">
                     <div class="storage_header" @click="toggle">
@@ -105,7 +116,15 @@
 
                         <div class="form-group">
                             <label for="exampleFormControlTextarea1">Данные для подключения</label>
-                            <textarea name="credentials" class="form-control" id="exampleFormControlTextarea1" rows="3" v-model="mCredentials">[[ mCredentials ]]</textarea>
+                            <code-mirror-component
+                                v-if="!collapsed"
+                                v-model="mCredentials"
+                                name="credentials"
+                                class="form-control"
+                                id="exampleFormControlTextarea1"
+                                rows="3"
+                                mode="application/ld+json"
+                            ></code-mirror-component>
                         </div>
 
                         <div class="alert alert-danger" role="alert" :class="{'d-none': !badMessage}">

@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/markdown/markdown.js' %}"></script>
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/python/python.js' %}"></script>
+    <script src="{% static 'pages/code-mirror-component.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -37,41 +38,6 @@
     </script>
 
     <script>
-        CodeMirrorComponent = {
-            props: ['modelValue'],
-            emits: ['update:modelValue'],
-            data() {
-                console.log(this.$el);
-                return {
-                    noteCodeMirror: undefined,
-                };
-            },
-            computed: {
-                value: {
-                    get() {
-                        return this.modelValue;
-                    },
-                    set(value) {
-                        this.$emit('update:modelValue', value);
-                    },
-                }
-            },
-            template: `<textarea v-model="value"></textarea>`,
-            mounted() {
-                this.noteCodeMirror = CodeMirror.fromTextArea(
-                    this.$el,
-                    {theme: "default", lineNumbers: true, mode: "markdown", extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"}}
-                );
-                let self = this;
-                this.noteCodeMirror.getDoc().on(
-                    'change',
-                    function(doc) {self.value = doc.getValue();},
-                );
-            },
-        }
-    </script>
-
-    <script>
         NoteViewerComponent = {
             props: ['content_html'],
             template: `<div v-html="content_html"></div>`,
@@ -90,8 +56,8 @@
                 <form>
                     <input name="source" type="hidden" value="{{ source }}">
                     <input name="title" v-model="mTitle" style="width:99%;">
-                    <br><br>
-                    <code-mirror-component v-model="mContent" name="content"></code-mirror-component>
+                    <br>
+                    <code-mirror-component v-model="mContent" name="content" mode="markdown"></code-mirror-component>
                     <br>
                     <div :class="{'d-none': !errorMessage}">
                         <span>[[ errorMessage ]]</span>
