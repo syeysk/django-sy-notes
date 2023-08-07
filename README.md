@@ -36,13 +36,13 @@ python manage.py runserver
 
 Проверка доступности сервера:
 
-<http://127.0.0.1:8000/api/v1/note/search/query/>
+<https://cachebrain.fun/api/v1/note/search/query/>
 
 HTTP/2 200 возвращает JSON ответ.
 
 ## API сервера
 
-[Документация API](http://127.0.0.1:8000/api/v1/schema/swagger-ui/)
+[Документация API](https://cachebrain.fun/api/v1/schema/swagger-ui/)
 
 ## План разработки микросервиса
 
