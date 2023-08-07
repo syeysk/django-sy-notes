@@ -1,8 +1,8 @@
 CodeMirrorComponent = {
+    inheritAttrs: false,
     props: ['modelValue', 'mode'],
     emits: ['update:modelValue'],
     data() {
-        console.log(this.$el);
         return {
             noteCodeMirror: undefined,
         };
@@ -17,10 +17,10 @@ CodeMirrorComponent = {
             },
         }
     },
-    template: `<textarea v-model="value"></textarea>`,
+    template: `<div><textarea v-model="value" v-bind="$attrs"></textarea></div>`,
     mounted() {
         this.noteCodeMirror = CodeMirror.fromTextArea(
-            this.$el,
+            this.$el.children[0],
             {
                 theme: "default",
                 lineNumbers: true,
