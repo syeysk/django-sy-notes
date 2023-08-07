@@ -5,19 +5,21 @@
 {% block title %}{{ note.title }}{% endblock %}
 {% block page_title %} Заметка | {{ note.title }}{% endblock %}
 
-{% block head %}
-    <script src="{% static 'pages/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'pages/extern/codemirror-5.65.14/lib/codemirror.css' %}">
-    <link rel="stylesheet" href="{% static 'pages/extern/codemirror-5.65.14/theme/default.css' %}">
-    <script src="{% static 'pages/extern/codemirror-5.65.14/mode/markdown/markdown.js' %}"></script>
-    <script src="{% static 'pages/extern/codemirror-5.65.14/mode/python/python.js' %}"></script>
+{% block start_of_head %}
+    <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
+    <script src="{% static 'base/extern/codemirror-5.65.14/mode/markdown/markdown.js' %}"></script>
+    <script src="{% static 'base/extern/codemirror-5.65.14/mode/python/python.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     {{ note|json_script:'note_json' }}
 
     <div id="app_note_id"></div>
+{% endblock %}
 
+{% block end_of_body %}
     <style>
         .CodeMirror {
             width: 99%;
@@ -39,6 +41,7 @@
             props: ['modelValue'],
             emits: ['update:modelValue'],
             data() {
+                console.log(this.$el);
                 return {
                     noteCodeMirror: undefined,
                 };
@@ -49,21 +52,22 @@
                         return this.modelValue;
                     },
                     set(value) {
-                        if (this.noteCodeMirror == undefined) {
-                            this.noteCodeMirror = CodeMirror.fromTextArea(
-                                this.$el,
-                                {theme: "default", lineNumbers: false, mode: "markdown", extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"}}
-                            );
-                            let self = this;
-                            this.noteCodeMirror.getDoc().on(
-                                'change',
-                                 function(doc) {self.$emit('update:modelValue', doc.getValue());},
-                            )
-                        }
+                        this.$emit('update:modelValue', value);
                     },
                 }
             },
             template: `<textarea v-model="value"></textarea>`,
+            mounted() {
+                this.noteCodeMirror = CodeMirror.fromTextArea(
+                    this.$el,
+                    {theme: "default", lineNumbers: true, mode: "markdown", extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"}}
+                );
+                let self = this;
+                this.noteCodeMirror.getDoc().on(
+                    'change',
+                    function(doc) {self.value = doc.getValue();},
+                );
+            },
         }
     </script>
 
@@ -121,7 +125,7 @@
                     :content_html="content_html"
                 ></note-viewer-component>
                 <note-editor-component
-                    :class="{'d-none': mode == 'view'}"
+                    v-if="mode != 'view'"
                     :title="title"
                     :content="content"
                     :error-message="errorMessage"
