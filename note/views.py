@@ -133,7 +133,7 @@ class NoteEditorView(APIView):
             'note': {'title': note['title'], 'content': note['content'], 'content_html': markdownify(content_md)},
             'source': source,
         }
-        return render(request, 'pages/note_editor.html', context)
+        return render(request, 'note/note_editor.html', context)
 
     @staticmethod
     def post(request, quoted_title):
@@ -189,7 +189,7 @@ class NoteListView(View):
             'sources': NoteStorageServiceModel.objects.values('source', 'description'),
             'source': source,
         }
-        return render(request, 'pages/note_list.html', context)
+        return render(request, 'note/note_list.html', context)
 
 
 class NoteStorageServiceListView(APIView):
@@ -204,7 +204,7 @@ class NoteStorageServiceListView(APIView):
             storages = storages.values(*common_values)
 
         context = {'storage_services': list(storages), 'service_names': list(NoteStorageServiceModel.CHOICES_SERVICE)}
-        return render(request, 'pages/note_storage_services.html', context)
+        return render(request, 'note/note_storage_services.html', context)
 
     @staticmethod
     def post(request, pk=None):
@@ -231,4 +231,4 @@ class NoteImportExportView(APIView):
     @staticmethod
     def get(request):
         context = {}
-        return render(request, 'pages/note_import_export.html', context)
+        return render(request, 'note/note_import_export.html', context)
