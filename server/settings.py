@@ -20,6 +20,7 @@ WSGI_APPLICATION = 'server.wsgi.application'
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'static'
 SITE_URL = env('SITE_URL')
+INTERNAL_IPS = ['127.0.0.1']
 
 API_TOKEN_SALT = env('API_TOKEN_SALT')
 
