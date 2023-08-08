@@ -114,7 +114,7 @@
                              </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group" id="credentials-group">
                             <label for="exampleFormControlTextarea1">Данные для подключения</label>
                             <code-mirror-component
                                 v-if="!collapsed"
@@ -143,13 +143,14 @@
                 },
                 save(event) {
                     let self = this;
+                    let form = event.target.form;
                     $.ajax({
                         url: URL_ADD_NOTE + this.$.vnode.key,
                         headers: {"X-CSRFToken": CSRF_TOKEN},
                         dataType: 'json',
-                        data: $(event.target.form).serialize(),
+                        data: $(form).serialize(),
                         success: function(result) {
-                            set_valid_field(event.target.form, result.updated_fields);
+                            set_valid_field(form, result.updated_fields);
                             self.$.vnode.key = result.id;
                             self.mIsNew = false;
                             self.badMessage = '';
@@ -159,7 +160,8 @@
                                 self.badMessage = 'ошибка сервера'
                             },
                             400: function(xhr) {
-                                set_invalid_field(event.target.form, xhr.responseJSON);
+                                clear_status_fields(form);
+                                set_invalid_field(form, xhr.responseJSON);
                                 self.badMessage = ''
                             },
                             404: function(xhr) {

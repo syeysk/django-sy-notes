@@ -30,6 +30,6 @@ class NoteStorageServiceSerializer(serializers.ModelSerializer):
             serializer = uploader_class.serializer(data=data['credentials'])
             serializer.is_valid(raise_exception=False)
             if serializer.errors:
-                raise serializers.ValidationError({'credentials': 'errors: {}'.format(json.dumps(serializer.errors))})
+                raise serializers.ValidationError({'credentials': json.dumps(serializer.errors)})
 
         return data
