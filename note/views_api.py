@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from custom_auth.authentication import TokenAuthentication
-from note.load_from_github import get_storage_service, get_root_url
+from note.load_from_github import get_storage_service
 from note.serializers_api import (
     NoteAddViewSerializer,
     NoteEditViewSerializer,
@@ -21,7 +21,7 @@ source_parametr = OpenApiParameter(
     description='Название базы',
     required=False,
     type=str,
-    default=settings.DEFAULT_UPLOADER,
+    default=settings.DEFAULT_SOURCE_CODE,
     location=OpenApiParameter.QUERY,
     examples=[
         OpenApiExample('Firestore', value='firestore'),
@@ -81,7 +81,7 @@ class NoteSearchView(APIView):
         response_data['limit'] = limit
         response_data['offset'] = offset
         response_data['source'] = source
-        response_data['path'] = '{}/'.format(get_root_url())
+        response_data['path'] = ''
         return Response(status=status.HTTP_200_OK, data=response_data)
 
 

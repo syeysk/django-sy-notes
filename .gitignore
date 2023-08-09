@@ -7,3 +7,5 @@ sqlite3.db
 server/tmp/restart.txt
 .env
 debug.log
+.idea
+cache_archives/

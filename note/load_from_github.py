@@ -1,4 +1,3 @@
-import io
 import os.path
 import zipfile
 from pathlib import Path
@@ -8,6 +7,7 @@ import firebase_admin
 import requests
 from django.conf import settings
 from django.db.models import Q
+from django.shortcuts import resolve_url
 from firebase_admin import credentials, firestore
 from typesense import Client
 
@@ -16,35 +16,6 @@ from note.serializers_uploader import (
     UploaderGithubSerializer,
     UploaderTypesenseSerializer,
 )
-
-
-def get_root_url(
-    directory: str = '',
-    owner: str = settings.GITHUB_OWNER,
-    repo: str = settings.GITHUB_REPO,
-    raw: bool = False,
-):
-    url_raw = f'https://raw.githubusercontent.com/{owner}/{repo}/main{directory}'
-    url_page = f'https://github.com/{owner}/{repo}/blob/main{directory}'
-    return url_raw if raw else url_page
-
-
-def download_from_github_archive(owner, repo, directory):
-    print('start downloading the archive')
-    response = requests.get('https://github.com/{}/{}/archive/refs/heads/main.zip'.format(owner, repo))
-    archive = io.BytesIO(response.content)
-    print('the archive is downloaded')
-    with zipfile.ZipFile(archive) as archive_object:
-        for member_name in archive_object.namelist():
-            if not member_name.startswith('{}-main{}'.format(repo, directory)):
-                continue
-
-            member_info = archive_object.getinfo(member_name)
-            if not member_info.is_dir():
-                with archive_object.open(member_info) as member_file:
-                    file_name, _ = os.path.splitext(os.path.basename(member_name))
-                    file_content = str(member_file.read(), 'utf-8')
-                    yield file_name, file_content
 
 
 def download_from_github_directory(owner, repo, directory, token):
@@ -89,6 +60,11 @@ def download_from_github_directory(owner, repo, directory, token):
 
 
 class BaseUploader:
+
+    @staticmethod
+    def total_count_objects_to_count_pages(count_objects, count_on_page):
+        return (count_objects // count_on_page) + 1 if count_objects % count_on_page > 0 else 0
+
     def get(self, title: str):
         """Return a note from a storage by `title`"""
         raise NotImplementedError()
@@ -107,6 +83,10 @@ class BaseUploader:
 
     def get_list(self, page_number: int, count_on_page: int) -> tuple[dict, dict]:
         """Return a list of notes from a storage by """
+        raise NotImplementedError()
+
+    def get_note_url(self, title: str):
+        """Return a note URL by `title`"""
         raise NotImplementedError()
 
 
@@ -138,7 +118,10 @@ class UploaderFirestore(BaseUploader):
         for ref_document in ref.limit(count_on_page).offset(offset).get():
             notes.append({'title': ref_document.id, 'content': ref_document.get('text')})
 
-        return notes, {'total_count': ref.count().get()[0][0].value}
+        return (
+            notes,
+            {'num_pages': self.total_count_objects_to_count_pages(ref.count().get()[0][0].value, count_on_page)},
+        )
 
 
 class UploaderTypesense(BaseUploader):
@@ -256,7 +239,13 @@ class UploaderDjangoServer(BaseUploader):
         count = notes.count()
 
         results = list(notes[offset:limit+offset].values(*fields))
+        for note in results:
+            note['url'] = self.get_note_url(note['title'])
+
         return dict(results=results, count=count)
+
+    def get_note_url(self, title):
+        return '{}/{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))
 
     def get(self, title):
         from note.models import Note
@@ -301,7 +290,10 @@ class UploaderDjangoServer(BaseUploader):
         paginator = Paginator(notes, count_on_page)
         page = paginator.page(page_number)
         return (
-            [{'title': note.title, 'content': note.content} for note in page.object_list],
+            [
+                {'title': note.title, 'content': note.content, 'url': self.get_note_url(note.title)}
+                for note in page.object_list
+            ],
             {'num_pages': paginator.num_pages},
         )
 
@@ -317,6 +309,9 @@ class UploaderGithub(BaseUploader):
         self.repo = repo
         self.branch = branch
         self.directory = directory
+
+    def get_note_url(self, title):
+        return f'https://github.com/{self.owner}/{self.repo}/blob/main{self.directory}/{quote(title)}.md'
 
     def get(self, title):
         response = requests.get(self.URL_NOTE.format(self.owner, self.repo, self.branch, self.directory, quote(title)))
@@ -338,7 +333,8 @@ class UploaderGithub(BaseUploader):
         total_count = 0
         with zipfile.ZipFile(archive_path) as archive_object:
             for member_info in archive_object.infolist():
-                if not member_info.filename.startswith(path_to_notes) or member_info.is_dir():
+                filename = member_info.filename
+                if not filename.startswith(path_to_notes) or not filename.endswith('.md') or member_info.is_dir():
                     continue
 
                 total_count += 1
@@ -350,27 +346,32 @@ class UploaderGithub(BaseUploader):
                     continue
 
                 with archive_object.open(member_info) as member_file:
-                    file_name, _ = os.path.splitext(os.path.basename(member_info.filename))
+                    file_name, _ = os.path.splitext(os.path.basename(filename))
                     file_content = str(member_file.read(), 'utf-8')
                     notes.append({'title': file_name, 'content': file_content})
 
-        return notes, {'total_count': total_count}
+        return notes, {'num_pages': self.total_count_objects_to_count_pages(total_count, count_on_page)}
 
 
-def run_initiator(downloader, args_downloader, source_to):
-    downloader = globals()['download_from_{}'.format(downloader)]
+def run_initiator(source_from, source_to):
+    downloader, _ = get_storage_service(source_from)
     uploader, _ = get_storage_service(source_to)
     uploader.clear()
     portion_size = 0
     total_size = 0
-    for file_name, file_content in downloader(*args_downloader):
-        uploader.add_to_portion(file_name, file_content)
-        portion_size += 1
-        if portion_size == uploader.MAX_PORTION_SIZE:
-            uploader.commit()
-            total_size += portion_size
-            portion_size = 0
-            print('uploaded files into database:', total_size)
+
+    count_on_page = 100
+    notes, meta = downloader.get_list(1, count_on_page)
+    for num_page in range(2, meta['num_pages']):
+        for note, _ in downloader.get_list(num_page, count_on_page):
+            file_name, file_content = note['title'], note['content']
+            uploader.add_to_portion(file_name, file_content)
+            portion_size += 1
+            if portion_size == uploader.MAX_PORTION_SIZE:
+                uploader.commit()
+                total_size += portion_size
+                portion_size = 0
+                print('uploaded files into database:', total_size)
 
     if portion_size:
         uploader.commit()
@@ -409,9 +410,9 @@ def get_storage_service(source=None, user=None):
         service_credentials = storage.credentials
         source = storage.source
     else:
-        service_name = settings.DEFAULT_UPLOADER
+        service_name = settings.DEFAULT_SOURCE_SERVICE_NAME
         service_credentials = {}
-        source = settings.DEFAULT_SOURCE
+        source = settings.DEFAULT_SOURCE_CODE
 
     uploader_class = service_name_to_class(service_name)
     return uploader_class(**service_credentials), source

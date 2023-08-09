@@ -15,7 +15,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import get_root_url, get_storage_service
+from note.load_from_github import get_storage_service
 from note.models import (
     Note,
     NoteStorageServiceModel,
@@ -51,7 +51,7 @@ def separate_yaml(content):
 )
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
-def note_hook(request):
+def note_hook(request):  # TODO: метод хука планируется перенести в адаптер хранилища. Сейчас хук не работает
     """Хук для обновления заметок на сервере из принятого Pull Request'а на Github"""
     data = {'files': {}}
     action = request._request.headers.get('X-Github-Event')
@@ -62,7 +62,6 @@ def note_hook(request):
         if owner_name != settings.GITHUB_OWNER or repo_name != settings.GITHUB_REPO:
             return Response(status=status.HTTP_200_OK, data={'message': 'repository or owner name has no access'})
 
-        link = get_root_url(owner=owner_name, repo=repo_name, raw=True)
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
@@ -96,7 +95,7 @@ def note_hook(request):
         for action_type, files in data['files'].items():
             for file in files:
                 title, _ = os.path.splitext(os.path.basename(file))
-                url = f'{link}/{file}'
+                url = UploaderGithub.URL_ARCHIVE.format()
                 if action_type == 'removed':
                     Note.objects.filter(title=title).delete()
                 elif action_type == 'modified':
@@ -168,11 +167,6 @@ class NoteEditorView(APIView):
 
 
 class NoteListView(View):
-
-    @staticmethod
-    def calc_num_pages(total, on_page):
-        return total // on_page + (1 if total % on_page else 0)
-
     def get(self, request):
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1
@@ -182,7 +176,7 @@ class NoteListView(View):
         notes, meta = uploader.get_list(page_number, count_on_page)
         context = {
             'notes': notes,
-            'last_page': meta.get('num_pages') or self.calc_num_pages(meta['total_count'], count_on_page),
+            'last_page': meta['num_pages'],
             'current_page': page_number,
             'next_page': page_number + 1,
             'prev_page': page_number - 1,
