@@ -83,7 +83,25 @@ def download_from_github_directory(owner, repo, directory, token):
 
 
 class BaseUploader:
-    pass
+    def get(self, title: str):
+        """Return a note from a storage by `title`"""
+        raise NotImplementedError()
+
+    def add(self, title: str, content: str):
+        """Create a note into a storage. Title of a note `title` must be unique"""
+        raise NotImplementedError()
+
+    def edit(self, title: str, new_title: str = None, new_content: str = None):
+        """Change an existing note. Minimum one of `new_title`, `new_content` must be not None"""
+        raise NotImplementedError()
+
+    def delete(self, title: str):
+        """Delete a note from a storage by `title`"""
+        raise NotImplementedError()
+
+    def get_list(self, page_number: int, count_on_page: int):
+        """Return a list of notes from a storage by """
+        raise NotImplementedError()
 
 
 class UploaderFirestore(BaseUploader):
