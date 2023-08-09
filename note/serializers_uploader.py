@@ -16,3 +16,10 @@ class UploaderTypesenseSerializer(serializers.Serializer):
 
 class UploaderFirestoreSerializer(serializers.Serializer):
     certificate = serializers.JSONField(label='Сертификат доступа', default='{}')
+
+
+class UploaderGithubSerializer(serializers.Serializer):
+    owner = serializers.CharField(label='Имя пользователя')
+    repo = serializers.CharField(label='Название репозитория')
+    branch = serializers.CharField(label='Наименование ветки')
+    directory = serializers.CharField(label='Директория, в которой хранятся заметки')
