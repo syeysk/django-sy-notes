@@ -15,7 +15,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import get_storage_service
+from note.load_from_github import get_storage_service, run_initiator
 from note.models import (
     Note,
     NoteStorageServiceModel,
@@ -203,8 +203,7 @@ class NoteStorageServiceListView(APIView):
     @staticmethod
     def post(request, pk=None):
         if pk:
-            # TODO: проверять request.user == instance.user
-            instance = NoteStorageServiceModel.objects.get(pk=pk)
+            instance = NoteStorageServiceModel.objects.get(pk=pk, user=request.user)
             serializer = NoteStorageServiceSerializer(instance, data=request.POST)
             serializer.is_valid(raise_exception=True)
             updated_fields = [
@@ -224,5 +223,19 @@ class NoteStorageServiceListView(APIView):
 class NoteImportExportView(APIView):
     @staticmethod
     def get(request):
-        context = {}
+        storages = (
+            NoteStorageServiceModel.objects
+            .filter(user=request.user)
+            .order_by('-pk')
+            .values('is_default', 'description', 'source')
+        ) if request.user.is_authenticated else []
+        context = {'storages': storages}
         return render(request, 'note/note_import_export.html', context)
+
+    def post(self, request):
+        # TODO: Использовать web-сокеты для отображения ползунка и статистики на фронте
+        for total_count in run_initiator(request.data['source-from'], request.data['source-to']):
+            ...
+
+        response_data = {'total_count': total_count}
+        return Response(status=status.HTTP_200_OK, data=response_data)

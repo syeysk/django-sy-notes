@@ -362,8 +362,8 @@ def run_initiator(source_from, source_to):
 
     count_on_page = 100
     notes, meta = downloader.get_list(1, count_on_page)
-    for num_page in range(2, meta['num_pages']):
-        for note, _ in downloader.get_list(num_page, count_on_page):
+    for num_page in range(1, meta['num_pages'] + 1):
+        for note in downloader.get_list(num_page, count_on_page)[0] if num_page > 1 else notes:
             file_name, file_content = note['title'], note['content']
             uploader.add_to_portion(file_name, file_content)
             portion_size += 1
@@ -371,12 +371,12 @@ def run_initiator(source_from, source_to):
                 uploader.commit()
                 total_size += portion_size
                 portion_size = 0
-                print('uploaded files into database:', total_size)
+                yield total_size
 
     if portion_size:
         uploader.commit()
 
-    print('uploading is finished. Totally uploaded:', total_size + portion_size)
+    yield total_size + portion_size
 
 
 def get_service_names():

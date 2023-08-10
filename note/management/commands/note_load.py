@@ -11,4 +11,7 @@ class Command(BaseCommand):
         parser.add_argument('--source-to', type=str, default=None)
 
     def handle(self, *args, **options):
-        run_initiator(options['source-from'], options['source-to'])
+        for total_count in run_initiator(options['source-from'], options['source-to']):
+            print('uploaded files into database:', total_count)
+
+        print('uploading is finished.')
