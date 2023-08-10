@@ -6,11 +6,13 @@
 
 {% block content %}
     Добавить хранилище можно на <a href="{% url 'note_service_storage_list' %}">этой странице</a>
-    <br><br>
+
+    <h3>Копировать заметки из одного хранилища в другое</h3>
+
     <form>
         Из хранилища:
         <select name="source-from" class="form-select form-select-lg mb-3">
-            {% for storage in storages %}
+            {% for storage in storages_from %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
                     {{ storage.source }} | {{ storage.description }}
                 </option>
@@ -18,16 +20,55 @@
         </select>
         В хранилище:
         <select name="source-to" class="form-select form-select-lg mb-3">
-            {% for storage in storages %}
+            {% for storage in storages_to %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
                     {{ storage.source }} | {{ storage.description }}
                 </option>
             {% endfor %}
         </select>
 
-        <input type="button" value="Начать импортирование" id="btn_import" class="btn btn-secondary">
-
+        <input type="button" value="Начать копирование" id="btn_import" class="btn btn-secondary">
     </form>
+
+    <!--
+    <h3>Импорт/экспорт заметок из архива</h3>
+
+    <form>
+        Из хранилища:
+        <select name="source-from" class="form-select form-select-lg mb-3">
+            {% for storage in storages_from %}
+                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                    {{ storage.source }} | {{ storage.description }}
+                </option>
+            {% endfor %}
+        </select>
+        <input type="button" value="Скачать архив на компьютер" id="btn_import" class="btn btn-secondary">
+    </form>
+
+    <form>
+        В хранилище:
+        <select name="source-to" class="form-select form-select-lg mb-3">
+            {% for storage in storages_to %}
+                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                    {{ storage.source }} | {{ storage.description }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <h3>Очистить хранилище</h3>
+    <form>
+        <select name="source-to" class="form-select form-select-lg mb-3">
+            {% for storage in storages_to %}
+                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                    {{ storage.source }} | {{ storage.description }}
+                </option>
+            {% endfor %}
+        </select>
+        <input type="button" value="Очистить" id="btn_import" class="btn btn-secondary">
+    </form>
+    -->
+
 {% endblock %}
 
 {% block end_of_body %}

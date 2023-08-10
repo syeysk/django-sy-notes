@@ -152,7 +152,8 @@ class NoteEditorView(APIView):
 
         uploader, _ = get_storage_service(request.GET.get('source'))
         if not uploader.get(title=title):
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            response_data = {'detail': 'Заметка с таким названием не существует. Возможно, она была переименована'}
+            return Response(status=status.HTTP_404_NOT_FOUND, data=response_data)
 
         if new_title and new_title != title and uploader.get(title=new_title):
             response_data = {'detail': 'Заметка с таким названием уже существует'}
@@ -223,13 +224,14 @@ class NoteStorageServiceListView(APIView):
 class NoteImportExportView(APIView):
     @staticmethod
     def get(request):
-        storages = (
+        storages_from = NoteStorageServiceModel.objects.order_by('-pk').values('description', 'source')
+        storages_to = (
             NoteStorageServiceModel.objects
             .filter(user=request.user)
             .order_by('-pk')
             .values('is_default', 'description', 'source')
         ) if request.user.is_authenticated else []
-        context = {'storages': storages}
+        context = {'storages_from': storages_from, 'storages_to': storages_to}
         return render(request, 'note/note_import_export.html', context)
 
     def post(self, request):
