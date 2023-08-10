@@ -156,7 +156,7 @@ class NoteEditorView(APIView):
         new_title = data.get('new_title')
         new_content = data.get('new_content')
 
-        uploader, _ = get_storage_service(request.GET.get('source'))
+        uploader, _ = get_storage_service(data['source'])
         if not uploader.get(title=title):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -181,7 +181,7 @@ class NoteEditorView(APIView):
         title = data['title']
         content = data['content']
 
-        uploader, _ = get_storage_service(request.GET.get('source'))
+        uploader, _ = get_storage_service(data['source'])
         if uploader.get(title=title):
             response_data = {'title': ['Заметка с таким названием уже существует']}
             return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)

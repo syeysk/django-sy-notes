@@ -170,7 +170,7 @@
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
                             dataType: 'json',
-                            data: {new_title: title, new_content: content, title: self.title, source: form.source.value},
+                            data: {new_title: title, new_content: content, source: form.source.value},
                             success: function(result) {
                                 set_valid_field(form, result.updated_fields);
                                 self.successMessage = '';
