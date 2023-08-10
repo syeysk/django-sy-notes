@@ -22,6 +22,7 @@ from note.models import (
     prepare_to_search,
 )
 from note.serializers import (
+    NoteCreateViewSerializer,
     NoteEditViewSerializer,
     NoteStorageServiceSerializer,
 )
@@ -121,8 +122,13 @@ def note_hook(request):  # TODO: метод хука планируется пе
 
 class NoteEditorView(APIView):
     @staticmethod
-    def get(request, quoted_title):
-        uploader, source = get_storage_service(request.COOKIES.get('source'))
+    def get(request, quoted_title=None):
+        source = request.COOKIES.get('source')
+        if quoted_title is None:
+            context = {'note': None, 'source': source}
+            return render(request, 'note/note_editor.html', context)
+
+        uploader, source = get_storage_service(source)
         note = uploader.get(unquote(quoted_title))
         if not note:
             raise Http404('Заметка не найдена')
@@ -135,7 +141,7 @@ class NoteEditorView(APIView):
         return render(request, 'note/note_editor.html', context)
 
     @staticmethod
-    def post(request, quoted_title):
+    def put(request, quoted_title):
         """
         Метод редактирования существующей заметки.
 
@@ -152,8 +158,7 @@ class NoteEditorView(APIView):
 
         uploader, _ = get_storage_service(request.GET.get('source'))
         if not uploader.get(title=title):
-            response_data = {'detail': 'Заметка с таким названием не существует. Возможно, она была переименована'}
-            return Response(status=status.HTTP_404_NOT_FOUND, data=response_data)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         if new_title and new_title != title and uploader.get(title=new_title):
             response_data = {'detail': 'Заметка с таким названием уже существует'}
@@ -164,6 +169,28 @@ class NoteEditorView(APIView):
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
+        )
+
+    @staticmethod
+    def post(request):
+        """Метод создания новой заметки"""
+        serializer = NoteCreateViewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        title = data['title']
+        content = data['content']
+
+        uploader, _ = get_storage_service(request.GET.get('source'))
+        if uploader.get(title=title):
+            response_data = {'title': ['Заметка с таким названием уже существует']}
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
+
+        uploader.add(title, content)
+        content_yaml, content_md = separate_yaml(content)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={'updated_fields': ['title', 'content'], 'content_html': markdownify(content_md)},
         )
 
 

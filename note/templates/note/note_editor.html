@@ -26,7 +26,7 @@
             width: 99%;
             height: 61vh;
         }
-		</style>
+    </style>
 
     <script>
         var URL_SAVE_NOTE = '';
@@ -55,8 +55,7 @@
             template: `
                 <form>
                     <input name="source" type="hidden" value="{{ source }}">
-                    <input name="title" v-model="mTitle" style="width:99%;">
-                    <br>
+                    <input name="title" v-model="mTitle" style="width:99%;border-bottom-left-radius: 0;border-bottom-right-radius: 0;" class="form-control" placeholder="Заголовок">
                     <code-mirror-component v-model="mContent" name="content" mode="markdown"></code-mirror-component>
                     <br>
                     <div :class="{'d-none': !errorMessage}">
@@ -67,8 +66,9 @@
                         <span>[[ successMessage ]]</span>
                         <br>
                     </div>
-                    <input type="button" value="Сохранить" @click="save">
-                    <input type="button" value="Отменить" @click="cancel">
+                    <input type="button" value="Сохранить" @click="save" class="btn btn-primary">
+                    &nbsp;
+                    <input type="button" value="Отменить" @click="cancel" class="btn btn-secondary">
                 </form>
             `,
             methods: {
@@ -102,13 +102,15 @@
             `,
             components: {NoteViewerComponent, NoteEditorComponent},
             data() {
+                is_new = !Boolean(note_object);
                 return {
-                    title: note_object.title,
-                    content: note_object.content,
-                    content_html: note_object.content_html,
+                    title: is_new ? '' : note_object.title,
+                    content: is_new ? '' : note_object.content,
+                    content_html: is_new ? '' : note_object.content_html,
                     errorMessage: '',
                     successMessage: '',
-                    mode: 'view',
+                    mode: is_new ? 'edit' : 'view',
+                    is_new: is_new,
                 }
             },
             methods: {
@@ -125,42 +127,79 @@
                 },
                 save(event, title, content) {
                     let self = this;
-                    this.successMessage = 'Сохраняем...'
-                    $.ajax({
-                        url: URL_SAVE_NOTE,
-                        headers: {
-                            "X-CSRFToken": CSRF_TOKEN,
-                        },
-                        dataType: 'json',
-                        data: {new_title: title, new_content: content, title: self.title},
-                        success: function(result) {
-                            set_valid_field(event.target.form, result.updated_fields);
-                            self.successMessage = '';
-                            history.pushState(
-                                null,
-                                null,
-                                location.href.replace('/' + encodeURI(self.title), '/' + encodeURI(title)),
-                            );
-                            self.title = title;
-                            self.content = content;
-                            self.content_html = result.content_html;
-                            update_page(title);
-                            self.view();
-                        },
-                        statusCode: {
-                            500: function(xhr) {
-                                self.errorMessage = 'ошибка сохранения'
+                    this.successMessage = 'Сохраняем...';
+                    let form = event.target.form;
+                    if (this.is_new) {
+                        $.ajax({
+                            url: URL_SAVE_NOTE,
+                            headers: {
+                                "X-CSRFToken": CSRF_TOKEN,
                             },
-                            400: function(xhr) {
-                                set_invalid_field(event.target.form, xhr.responseJSON);
-                                self.errorMessage = 'сохранение в разработке...'
+                            dataType: 'json',
+                            data: {title: title, content: content, source: form.source.value},
+                            success: function(result) {
+                                set_valid_field(form, result.updated_fields);
+                                self.successMessage = '';
+                                history.pushState(
+                                    null,
+                                    null,
+                                    location.href.replace('/new', '/' + encodeURI(title) + '.md'),
+                                );
+                                self.title = title;
+                                self.content = content;
+                                self.content_html = result.content_html;
+                                update_page(title);
+                                self.view();
+                                self.is_new = false;
                             },
-                            404: function(xhr) {
-                                self.errorMessage = 'заметка с таким именем не существует'
+                            statusCode: {
+                                500: function(xhr) {
+                                    self.errorMessage = 'ошибка сохранения'
+                                },
+                                400: function(xhr) {
+                                    set_invalid_field(form, xhr.responseJSON);
+                                    self.errorMessage = ''
+                                },
                             },
-                        },
-                        method: "post"
-                    });
+                            method: "post",
+                        });
+                    } else {
+                        $.ajax({
+                            url: URL_SAVE_NOTE,
+                            headers: {
+                                "X-CSRFToken": CSRF_TOKEN,
+                            },
+                            dataType: 'json',
+                            data: {new_title: title, new_content: content, title: self.title, source: form.source.value},
+                            success: function(result) {
+                                set_valid_field(form, result.updated_fields);
+                                self.successMessage = '';
+                                history.pushState(
+                                    null,
+                                    null,
+                                    location.href.replace('/' + encodeURI(self.title), '/' + encodeURI(title)),
+                                );
+                                self.title = title;
+                                self.content = content;
+                                self.content_html = result.content_html;
+                                update_page(title);
+                                self.view();
+                            },
+                            statusCode: {
+                                500: function(xhr) {
+                                    self.errorMessage = 'ошибка сохранения'
+                                },
+                                400: function(xhr) {
+                                    set_invalid_field(form, xhr.responseJSON);
+                                    self.errorMessage = ''
+                                },
+                                404: function(xhr) {
+                                    self.errorMessage = 'Заметка с таким названием не существует. Возможно, она была переименована'
+                                },
+                            },
+                            method: "put",
+                        });
+                    }
                 }
             },
         }

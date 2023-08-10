@@ -125,8 +125,7 @@ class NoteView(APIView):
         title = unquote(title)
 
         uploader, source = get_storage_service(request.GET.get('source'))
-        note_data = uploader.get(title=title)
-        if note_data:
+        if uploader.get(title=title):
             data = {'detail': 'Заметка с таким названием уже существует'}
             return Response(status=status.HTTP_200_OK, data=data)
 

@@ -6,6 +6,7 @@ from note.models import NoteStorageServiceModel
 
 
 class NoteEditViewSerializer(serializers.Serializer):
+    source = serializers.CharField(max_length=30, help_text='Имя хранилища')
     title = serializers.CharField(max_length=255, required=False, help_text='Текущее имя заметки')
     new_title = serializers.CharField(max_length=255, required=False, help_text='Новое имя заметки')
     new_content = serializers.CharField(max_length=20000, required=False, help_text='Новое содержимое заметки')
@@ -15,6 +16,12 @@ class NoteEditViewSerializer(serializers.Serializer):
             raise serializers.ValidationError('required new_title or new_content, or both')
 
         return data
+
+
+class NoteCreateViewSerializer(serializers.Serializer):
+    source = serializers.CharField(max_length=30, help_text='Имя хранилища')
+    title = serializers.CharField(max_length=255, help_text='Имя заметки')
+    content = serializers.CharField(max_length=20000, help_text='Содержимое заметки')
 
 
 class NoteStorageServiceSerializer(serializers.ModelSerializer):

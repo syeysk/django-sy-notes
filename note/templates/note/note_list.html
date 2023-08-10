@@ -20,6 +20,8 @@
         }
 		</script>
 
+    <a href="{% url 'note_create' %}"><input type="button" value="Новая заметка" class="btn btn-primary"></a>
+
     <select onchange="document.cookie='source='+this.value; window.location.reload();" class="form-select form-select-lg mb-3">
         {% for source_dict in sources %}
             <option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>

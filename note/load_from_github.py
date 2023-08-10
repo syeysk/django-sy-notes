@@ -65,12 +65,21 @@ class BaseUploader:
     def total_count_objects_to_count_pages(count_objects, count_on_page):
         return (count_objects // count_on_page) + 1 if count_objects % count_on_page > 0 else 0
 
-    def get(self, title: str):
-        """Return a note from a storage by `title`"""
+    def get(self, title: str) -> dict | None:
+        """Return a note from a storage by `title`.
+
+        :param title: title of a note
+        :return: `dict` like `{'title': '', 'content': ''}` if a note exists, else - `None`
+        """
         raise NotImplementedError()
 
-    def add(self, title: str, content: str):
-        """Create a note into a storage. Title of a note `title` must be unique"""
+    def add(self, title: str, content: str) -> dict:
+        """Create a note into a storage.
+
+        :param title: title of a note. Must be unique value
+        :param content: content of a note
+        :return: `dict` like `{'title': '', 'content': ''}`
+        """
         raise NotImplementedError()
 
     def edit(self, title: str, new_title: str = None, new_content: str = None):
@@ -286,7 +295,7 @@ class UploaderDjangoServer(BaseUploader):
     def get_list(self, page_number, count_on_page):
         from django.core.paginator import Paginator
         from note.models import Note
-        notes = Note.objects.all()
+        notes = Note.objects.order_by('title')
         paginator = Paginator(notes, count_on_page)
         page = paginator.page(page_number)
         return (
