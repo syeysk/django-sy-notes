@@ -5,6 +5,8 @@
 {% block page_title %}Импорт/экспорт{% endblock %}
 
 {% block content %}
+    Добавить хранилище можно на <a href="{% url 'note_service_storage_list' %}">этой странице</a>
+    <br><br>
     <form>
         Из хранилища:
         <select name="source-from" class="form-select form-select-lg mb-3">
