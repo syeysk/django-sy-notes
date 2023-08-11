@@ -14,7 +14,7 @@
         Из базы:
         <select name="source-from" class="form-select form-select-lg mb-3">
             {% for storage in storages_from %}
-                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                <option value="{{ storage.source }}">
                     {{ storage.source }} | {{ storage.description }}
                 </option>
             {% endfor %}
@@ -38,7 +38,7 @@
         Из базы:
         <select name="source-from" class="form-select form-select-lg mb-3">
             {% for storage in storages_from %}
-                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                <option value="{{ storage.source }}">
                     {{ storage.source }} | {{ storage.description }}
                 </option>
             {% endfor %}
