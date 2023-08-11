@@ -69,19 +69,20 @@ class NoteSearchView(APIView):
         file_content = query if search_by in ('content', 'all') else None
         fields = ('title', 'content') if fields == 'all' else (fields,)
 
-        uploader, source = get_storage_service(request.GET.get('source'))
-        response_data = uploader.search(
-            operator=data['operator'],
-            limit=limit,
-            offset=offset,
-            fields=fields,
-            file_name=file_name,
-            file_content=file_content,
-        )
-        response_data['limit'] = limit
-        response_data['offset'] = offset
-        response_data['source'] = source
-        response_data['path'] = ''
+        with get_storage_service(request.GET.get('source')) as (uploader, source):
+            response_data = uploader.search(
+                operator=data['operator'],
+                limit=limit,
+                offset=offset,
+                fields=fields,
+                file_name=file_name,
+                file_content=file_content,
+            )
+            response_data['source'] = source
+            response_data['limit'] = limit
+            response_data['offset'] = offset
+            response_data['path'] = ''
+
         return Response(status=status.HTTP_200_OK, data=response_data)
 
 
@@ -99,12 +100,14 @@ class NoteView(APIView):
     )
     def get(self, request, title):
         """Метод получения заметки"""
-        uploader, source = get_storage_service(request.GET.get('source'))
-        note_data = uploader.get(title=unquote(title))
-        if not note_data:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        with get_storage_service(request.GET.get('source')) as (uploader, source):
+            note_data = uploader.get(title=unquote(title))
 
-        note_data['source'] = source
+            if not note_data:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+            note_data['source'] = source
+
         return Response(status=status.HTTP_200_OK, data=note_data)
 
     @extend_schema(
@@ -124,13 +127,14 @@ class NoteView(APIView):
 
         title = unquote(title)
 
-        uploader, source = get_storage_service(request.GET.get('source'))
-        if uploader.get(title=title):
-            data = {'detail': 'Заметка с таким названием уже существует'}
-            return Response(status=status.HTTP_200_OK, data=data)
+        with get_storage_service(request.GET.get('source')) as (uploader, source):
+            if uploader.get(title=title):
+                data = {'detail': 'Заметка с таким названием уже существует'}
+                return Response(status=status.HTTP_200_OK, data=data)
 
-        note_data = uploader.add(title, data['content'])
-        note_data['source'] = source
+            note_data = uploader.add(title, data['content'])
+            note_data['source'] = source
+
         return Response(status=status.HTTP_200_OK, data=note_data)
 
     @extend_schema(
@@ -156,15 +160,16 @@ class NoteView(APIView):
         title = unquote(title)
         new_title = data.get('new_title')
 
-        uploader, _ = get_storage_service(request.GET.get('source'))
-        if not uploader.get(title=title):
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        with get_storage_service(request.GET.get('source')) as (uploader, _):
+            if not uploader.get(title=title):
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if new_title and new_title != title and uploader.get(title=new_title):
-            response_data = {'detail': 'Заметка с таким названием уже существует'}
-            return Response(status=status.HTTP_200_OK, data=response_data)
+            if new_title and new_title != title and uploader.get(title=new_title):
+                response_data = {'detail': 'Заметка с таким названием уже существует'}
+                return Response(status=status.HTTP_200_OK, data=response_data)
 
-        uploader.edit(title, new_title, data.get('new_content'))
+            uploader.edit(title, new_title, data.get('new_content'))
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
@@ -177,10 +182,11 @@ class NoteView(APIView):
     )
     def delete(self, request, title):
         """Метод удаления заметки"""
-        uploader, _ = get_storage_service(request.GET.get('source'))
-        note_data = uploader.get(title=unquote(title))
-        if not note_data:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        with get_storage_service(request.GET.get('source')) as (uploader, _):
+            note_data = uploader.get(title=unquote(title))
+            if not note_data:
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
-        uploader.delete(title)
+            uploader.delete(title)
+
         return Response(status=status.HTTP_204_NO_CONTENT)

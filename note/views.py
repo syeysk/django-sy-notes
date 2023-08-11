@@ -128,8 +128,9 @@ class NoteEditorView(APIView):
             context = {'note': None, 'source': source}
             return render(request, 'note/note_editor.html', context)
 
-        uploader, source = get_storage_service(source)
-        note = uploader.get(unquote(quoted_title))
+        with get_storage_service(source) as (uploader, source):
+            note = uploader.get(unquote(quoted_title))
+
         if not note:
             raise Http404('Заметка не найдена')
 
@@ -156,15 +157,16 @@ class NoteEditorView(APIView):
         new_title = data.get('new_title')
         new_content = data.get('new_content')
 
-        uploader, _ = get_storage_service(data['source'])
-        if not uploader.get(title=title):
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        with get_storage_service(data['source']) as (uploader, _):
+            if not uploader.get(title=title):
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if new_title and new_title != title and uploader.get(title=new_title):
-            response_data = {'detail': 'Заметка с таким названием уже существует'}
-            return Response(status=status.HTTP_200_OK, data=response_data)
+            if new_title and new_title != title and uploader.get(title=new_title):
+                response_data = {'detail': 'Заметка с таким названием уже существует'}
+                return Response(status=status.HTTP_200_OK, data=response_data)
 
-        updated_fields = uploader.edit(title, new_title, new_content)
+            updated_fields = uploader.edit(title, new_title, new_content)
+
         content_yaml, content_md = separate_yaml(new_content)
         return Response(
             status=status.HTTP_200_OK,
@@ -181,12 +183,13 @@ class NoteEditorView(APIView):
         title = data['title']
         content = data['content']
 
-        uploader, _ = get_storage_service(data['source'])
-        if uploader.get(title=title):
-            response_data = {'title': ['Заметка с таким названием уже существует']}
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
+        with get_storage_service(data['source']) as (uploader, _):
+            if uploader.get(title=title):
+                response_data = {'title': ['Заметка с таким названием уже существует']}
+                return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
-        uploader.add(title, content)
+            uploader.add(title, content)
+
         content_yaml, content_md = separate_yaml(content)
         return Response(
             status=status.HTTP_200_OK,
@@ -200,8 +203,9 @@ class NoteListView(View):
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
 
-        uploader, source = get_storage_service(request.COOKIES.get('source'), request.user)
-        notes, meta = uploader.get_list(page_number, count_on_page)
+        with get_storage_service(request.COOKIES.get('source'), request.user) as (uploader, source):
+            notes, meta = uploader.get_list(page_number, count_on_page)
+
         context = {
             'notes': notes,
             'last_page': meta['num_pages'],
@@ -272,9 +276,9 @@ class NoteImportExportView(APIView):
                 ...
         elif command == 'clear':
             source_to = request.data['source-to']
-            uploader, source = get_storage_service(source_to, request.user)
-            if source == source_to:
-                uploader.clear()
+            with get_storage_service(source_to, request.user) as (uploader, source):
+                if source == source_to:
+                    uploader.clear()
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'command': ['Неизвестная команда']})
 

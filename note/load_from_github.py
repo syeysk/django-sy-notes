@@ -1,14 +1,14 @@
 import os.path
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import quote
 
-import firebase_admin
 import requests
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import resolve_url
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, delete_app, firestore, initialize_app
 from typesense import Client
 
 from note.serializers_uploader import (
@@ -61,6 +61,9 @@ def download_from_github_directory(owner, repo, directory, token):
 
 class BaseUploader:
 
+    def close(self):
+        pass
+
     @staticmethod
     def total_count_objects_to_count_pages(count_objects, count_on_page):
         return (count_objects // count_on_page) + 1 if count_objects % count_on_page > 0 else 0
@@ -106,19 +109,26 @@ class UploaderFirestore(BaseUploader):
 
     def __init__(self, certificate):
         cred = credentials.Certificate(certificate)
-        firebase_admin.initialize_app(cred)
+        self.app = initialize_app(cred)
         self.db = firestore.client()
-        self.batch = self.db.batch()
+        self.batch = None
+
+    def close(self):
+        delete_app(self.app)
 
     def clear(self):
         ...
 
     def add_to_portion(self, file_name, file_content):
         ref = self.db.collection('knowledge').document(file_name)
+        if self.batch is None:
+            self.batch = self.db.batch()
+
         self.batch.set(ref, {'text': file_content})
 
     def commit(self):
-        self.batch.commit()
+        if self.batch is not None:
+            self.batch.commit()
 
     def get_list(self, page_number, count_on_page):
         ref = self.db.collection('knowledge')
@@ -363,27 +373,26 @@ class UploaderGithub(BaseUploader):
 
 
 def run_initiator(source_from, source_to):
-    downloader, _ = get_storage_service(source_from)
-    uploader, _ = get_storage_service(source_to)
-    uploader.clear()
     portion_size = 0
     total_size = 0
-
     count_on_page = 100
-    notes, meta = downloader.get_list(1, count_on_page)
-    for num_page in range(1, meta['num_pages'] + 1):
-        for note in downloader.get_list(num_page, count_on_page)[0] if num_page > 1 else notes:
-            file_name, file_content = note['title'], note['content']
-            uploader.add_to_portion(file_name, file_content)
-            portion_size += 1
-            if portion_size == uploader.MAX_PORTION_SIZE:
-                uploader.commit()
-                total_size += portion_size
-                portion_size = 0
-                yield total_size
+    with get_storage_service(source_from) as (downloader, _), get_storage_service(source_to) as (uploader, _):
+        uploader.clear()
 
-    if portion_size:
-        uploader.commit()
+        notes, meta = downloader.get_list(1, count_on_page)
+        for num_page in range(1, meta['num_pages'] + 1):
+            for note in downloader.get_list(num_page, count_on_page)[0] if num_page > 1 else notes:
+                file_name, file_content = note['title'], note['content']
+                uploader.add_to_portion(file_name, file_content)
+                portion_size += 1
+                if portion_size == uploader.MAX_PORTION_SIZE:
+                    uploader.commit()
+                    total_size += portion_size
+                    portion_size = 0
+                    yield total_size
+
+        if portion_size:
+            uploader.commit()
 
     yield total_size + portion_size
 
@@ -402,6 +411,7 @@ def service_name_to_class(service_name):
     return globals()['Uploader{}'.format(service_name)]
 
 
+@contextmanager
 def get_storage_service(source=None, user=None):
     """Функция получения объекта базы заметок"""
     from note.models import NoteStorageServiceModel
@@ -424,4 +434,8 @@ def get_storage_service(source=None, user=None):
         source = settings.DEFAULT_SOURCE_CODE
 
     uploader_class = service_name_to_class(service_name)
-    return uploader_class(**service_credentials), source
+    uploader = uploader_class(**service_credentials)
+    try:
+        yield uploader, source
+    finally:
+        uploader.close()
