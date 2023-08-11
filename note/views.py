@@ -263,8 +263,20 @@ class NoteImportExportView(APIView):
 
     def post(self, request):
         # TODO: Использовать web-сокеты для отображения ползунка и статистики на фронте
-        for total_count in run_initiator(request.data['source-from'], request.data['source-to']):
-            ...
+        total_count = 0
+        command = request.data['command']
+        if command == 'copy-from-to':
+            source_to = request.data['source-to']
+            source_from = request.data['source-from']
+            for total_count in run_initiator(source_from, source_to):
+                ...
+        elif command == 'clear':
+            source_to = request.data['source-to']
+            uploader, source = get_storage_service(source_to, request.user)
+            if source == source_to:
+                uploader.clear()
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'command': ['Неизвестная команда']})
 
         response_data = {'total_count': total_count}
         return Response(status=status.HTTP_200_OK, data=response_data)

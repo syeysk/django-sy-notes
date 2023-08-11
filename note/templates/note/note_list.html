@@ -28,6 +28,10 @@
         {% endfor %}
 		</select>
 
+    {% if not notes %}
+        <p>База пуста. Вы можете выбрать другую базу либо добавить первую заметку</p>
+    {% endif %}
+
 		{% for note in notes %}
         <h3><a href="{% url 'note_editor' note.title %}">{{ note.title }}</a></h3>
 				<p>{{ note.content|slice:":1000" }}</p>

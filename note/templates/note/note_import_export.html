@@ -10,6 +10,7 @@
     <h3>Копировать заметки из одной базы в другуе</h3>
 
     <form>
+			  <input type="hidden" name="command" value="copy-from-to">
         Из базы:
         <select name="source-from" class="form-select form-select-lg mb-3">
             {% for storage in storages_from %}
@@ -27,7 +28,7 @@
             {% endfor %}
         </select>
 
-        <input type="button" value="Начать копирование" id="btn_import" class="btn btn-secondary">
+        <input type="button" value="Начать копирование" class="do_command btn btn-secondary">
     </form>
 
     <!--
@@ -42,7 +43,7 @@
                 </option>
             {% endfor %}
         </select>
-        <input type="button" value="Скачать архив на компьютер" id="btn_import" class="btn btn-secondary">
+        <input type="button" value="Скачать архив на компьютер" class="do_command btn btn-secondary">
     </form>
 
     <form>
@@ -55,9 +56,11 @@
             {% endfor %}
         </select>
     </form>
+     -->
 
     <h3>Очистить базу</h3>
     <form>
+			  <input type="hidden" name="command" value="clear">
         <select name="source-to" class="form-select form-select-lg mb-3">
             {% for storage in storages_to %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
@@ -65,9 +68,8 @@
                 </option>
             {% endfor %}
         </select>
-        <input type="button" value="Очистить" id="btn_import" class="btn btn-secondary">
+        <input type="button" value="Очистить" class="do_command btn btn-secondary">
     </form>
-    -->
 
 {% endblock %}
 
@@ -75,7 +77,7 @@
     <script>
         var CSRF_TOKEN = "{{ csrf_token }}";
 
-        $('#btn_import').click(function(event){
+        $('.do_command').click(function(event){
             $.ajax({
                 url: '',
                 headers: {"X-CSRFToken": CSRF_TOKEN},
