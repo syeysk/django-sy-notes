@@ -26,13 +26,13 @@ class Note(models.Model):
 
 class NoteStorageServiceModel(models.Model):
     CHOICES_SERVICE = get_service_names()
-    service = models.CharField(verbose_name='Внешний сервис хранилища', max_length=30, choices=CHOICES_SERVICE, blank=False)
+    service = models.CharField(verbose_name='Внешний сервис базы', max_length=30, choices=CHOICES_SERVICE, blank=False)
     credentials = models.JSONField(verbose_name='Данные для полключения', default=dict)
     description = models.CharField(verbose_name='Комментарий', max_length=100, default='')
     is_default = models.BooleanField(
-        verbose_name='Является ли хранилищем по-умолчанию?',
+        verbose_name='Является ли база по-умолчанию?',
         help_text=(
-            'Если да, то это хранилище будет использовано при открытии страницы списка заметок,'
+            'Если да, то эта база будет использовано при открытии страницы списка заметок,'
             ' а также при редактировании заметки'
         ),
         default=False,
@@ -43,9 +43,9 @@ class NoteStorageServiceModel(models.Model):
         max_length=30,
         unique=True,
         db_index=True,
-        help_text='Используется для указания хранилища при поиске, редактировании и отображении заметок',
+        help_text='Используется для указания базы при поиске, редактировании и отображении заметок',
     )
 
     class Meta:
-        verbose_name = 'Хранилище заметок'
-        verbose_name_plural = 'Хранилища заметок'
+        verbose_name = 'База заметок'
+        verbose_name_plural = 'Базы заметок'

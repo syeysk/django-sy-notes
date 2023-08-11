@@ -5,12 +5,12 @@
 {% block page_title %}Импорт/экспорт{% endblock %}
 
 {% block content %}
-    Добавить хранилище можно на <a href="{% url 'note_service_storage_list' %}">этой странице</a>
+    Добавить базу можно на <a href="{% url 'note_service_storage_list' %}">этой странице</a>
 
-    <h3>Копировать заметки из одного хранилища в другое</h3>
+    <h3>Копировать заметки из одной базы в другуе</h3>
 
     <form>
-        Из хранилища:
+        Из базы:
         <select name="source-from" class="form-select form-select-lg mb-3">
             {% for storage in storages_from %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
@@ -18,7 +18,7 @@
                 </option>
             {% endfor %}
         </select>
-        В хранилище:
+        В базу:
         <select name="source-to" class="form-select form-select-lg mb-3">
             {% for storage in storages_to %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
@@ -34,7 +34,7 @@
     <h3>Импорт/экспорт заметок из архива</h3>
 
     <form>
-        Из хранилища:
+        Из базы:
         <select name="source-from" class="form-select form-select-lg mb-3">
             {% for storage in storages_from %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
@@ -46,7 +46,7 @@
     </form>
 
     <form>
-        В хранилище:
+        В базу:
         <select name="source-to" class="form-select form-select-lg mb-3">
             {% for storage in storages_to %}
                 <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
@@ -56,7 +56,7 @@
         </select>
     </form>
 
-    <h3>Очистить хранилище</h3>
+    <h3>Очистить базу</h3>
     <form>
         <select name="source-to" class="form-select form-select-lg mb-3">
             {% for storage in storages_to %}

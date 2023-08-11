@@ -403,7 +403,7 @@ def service_name_to_class(service_name):
 
 
 def get_storage_service(source=None, user=None):
-    """Функция получения объекта хранилища заметок"""
+    """Функция получения объекта базы заметок"""
     from note.models import NoteStorageServiceModel
 
     storage = None

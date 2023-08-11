@@ -78,5 +78,5 @@ class NoteSearchResponseSerializer(serializers.Serializer):
     limit = serializers.IntegerField(min_value=1, max_value=100,  help_text='Количество результатов на странице')
     offset = serializers.IntegerField(min_value=0, help_text='Смещение результатов')
     source = serializers.CharField(max_length=20, help_text='Название базы')
-    path = serializers.CharField(max_length=100, help_text='Путь к заметке на Github-хранилище')
+    path = serializers.CharField(max_length=100, help_text='Путь к заметке в базе')
     results = NoteSearchNoteResponseSerializer()

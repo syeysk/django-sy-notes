@@ -52,7 +52,7 @@ def separate_yaml(content):
 )
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
-def note_hook(request):  # TODO: метод хука планируется перенести в адаптер хранилища. Сейчас хук не работает
+def note_hook(request):  # TODO: метод хука планируется перенести в адаптер базы. Сейчас хук не работает
     """Хук для обновления заметок на сервере из принятого Pull Request'а на Github"""
     data = {'files': {}}
     action = request._request.headers.get('X-Github-Event')

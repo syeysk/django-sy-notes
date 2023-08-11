@@ -2,8 +2,8 @@
 {% load markdownify %}
 {% load static %}
 
-{% block title %}Источники заметок{% endblock %}
-{% block page_title %}Источники заметок{% endblock %}
+{% block title %}Базы заметок{% endblock %}
+{% block page_title %}Базы заметок{% endblock %}
 
 {% block start_of_head %}
     <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
@@ -84,7 +84,7 @@
                     <form class="storage_body" :class="{'d-none': collapsed}">
 
                         <select :disabled="!mIsNew" v-model="mService" class="form-select form-select-lg mb-3">
-                            <option value="" :selected="mIsNew" disabled>Адаптер источника</option>
+                            <option value="" :selected="mIsNew" disabled>Адаптер базы</option>
                             <option
                                 v-for="service_name in service_names"
                                 :value="service_name[0]"
@@ -96,14 +96,14 @@
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
                                 <input v-model="mDescription" class="form-control" type="input" name="description" id="description-field">
-                                <label for="description-field" class="form-label">Описание источника</label>
+                                <label for="description-field" class="form-label">Описание базы</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="source-group">
                             <div class="form-floating">
                                 <input v-model="mSource" class="form-control" type="input" name="source" id="source-field">
-                                <label for="source-field" class="form-label">Кодовое имя источника</label>
+                                <label for="source-field" class="form-label">Название базы</label>
                              </div>
                         </div>
 
@@ -165,7 +165,7 @@
                                 self.badMessage = ''
                             },
                             404: function(xhr) {
-                                self.badMessage = 'хранилище с таким именем не существует'
+                                self.badMessage = 'база с таким именем не существует'
                             },
                         },
                         method: "post"
