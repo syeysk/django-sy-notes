@@ -210,7 +210,7 @@
                     if (this.uncollapsed_component && !this.uncollapsed_component.isNew) {
                         this.uncollapsed_component.collapsed = true;
                     }
-                    if (this.storages[0].pk) {
+                    if (this.storages.length == 0 || this.storages[0].pk) {
                         this.storages.unshift({
                             service: '',
                             description: '',
