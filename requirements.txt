@@ -11,7 +11,6 @@ drf-spectacular==0.26.2
 pytest==7.3.1
 pytest-django==4.5.2
 pyyaml==6.0
-setuptools==65.5.1
 selenium==4.10.0
 typesense==0.13.1
 git+https://github.com/syeysk/django-sy-framework.git
