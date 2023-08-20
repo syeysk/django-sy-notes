@@ -22,7 +22,8 @@ STATIC_ROOT = BASE_DIR.parent / 'static'
 SITE_URL = env('SITE_URL')
 INTERNAL_IPS = ['127.0.0.1']
 
-API_TOKEN_SALT = env('API_TOKEN_SALT')
+API_SALT = env('API_SALT')
+API_SECRET_KEY = env('API_SECRET_KEY')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -31,15 +32,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'server',
-    'custom_auth',
     'rest_framework',
     'drf_spectacular',
     'mathfilters',
     'markdownify.apps.MarkdownifyConfig',
+    'django_sy_framework.base',
+    'django_sy_framework.custom_auth',
+    'server',
     'note',
     'pages',
-    'django_sy_framework.base',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'custom_auth.context_processors.extern_auth_services',
+                'django_sy_framework.custom_auth.context_processors.extern_auth_services',
             ],
         },
     },
@@ -115,11 +116,6 @@ SPECTACULAR_SETTINGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Knowledge app
-
-DEFAULT_SOURCE_SERVICE_NAME = env('DEFAULT_SOURCE_SERVICE_NAME')
-DEFAULT_SOURCE_CODE = env('DEFAULT_SOURCE_CODE')
-
 # External auth
 
 EXTERN_AUTH = {
@@ -128,6 +124,20 @@ EXTERN_AUTH = {
         'client_secret': env('EXTERN_AUTH_GOOGLE_CLIENT_SECRET'),
     }
 }
+
+AUTH_USER_MODEL = 'custom_auth.CustomAuthUser'
+AUTHENTICATION_BACKENDS = ['django_sy_framework.custom_auth.backend.CustomAuthBackend']
+MICROSERVICES_TOKENS = {
+    'to_auth': env('MICROSERVICE_TOKEN_TO_AUTH'),
+}
+MICROSERVICES_URLS = {
+    'auth': env('MICROSERVICE_URL_AUTH'),
+}
+
+# Knowledge app
+
+DEFAULT_SOURCE_SERVICE_NAME = env('DEFAULT_SOURCE_SERVICE_NAME')
+DEFAULT_SOURCE_CODE = env('DEFAULT_SOURCE_CODE')
 
 MARKDOWNIFY = {
     'default': {

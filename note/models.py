@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from note.load_from_github import get_service_names
@@ -37,7 +37,7 @@ class NoteStorageServiceModel(models.Model):
         ),
         default=False,
     )
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), null=False, on_delete=models.CASCADE)
     source = models.CharField(
         verbose_name='Уникальный идентификатор',
         max_length=30,

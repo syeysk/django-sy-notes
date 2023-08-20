@@ -1,3 +1,4 @@
+cryptography==41.0.3
 Django==4.2.1
 factory_boy==3.2.1
 firebase==3.0.1
