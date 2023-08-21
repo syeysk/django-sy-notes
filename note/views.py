@@ -12,10 +12,11 @@ from markdownify.templatetags.markdownify import markdownify
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import get_storage_service, run_initiator
+from note.load_from_github import get_storage_service, get_service_names, run_initiator
 from note.models import (
     Note,
     NoteStorageServiceModel,
@@ -229,7 +230,21 @@ class NoteStorageServiceListView(APIView):
         else:
             storages = storages.values(*common_values)
 
-        context = {'storage_services': list(storages), 'service_names': list(NoteStorageServiceModel.CHOICES_SERVICE)}
+        auto_schema = AutoSchema()
+        service_maps = {}
+        for subclass_name, subclass in get_service_names(True):
+            service_serializer = getattr(subclass, 'serializer', None)
+            if service_serializer:
+                service_map = auto_schema.map_serializer(service_serializer())
+                service_maps[subclass_name] = []
+                for field_name, field_map in service_map['properties'].items():
+                    service_maps[subclass_name].append({'name': field_name, 'map': field_map})
+
+        context = {
+            'storage_services': list(storages),
+            'service_names': list(NoteStorageServiceModel.CHOICES_SERVICE),
+            'service_maps': service_maps,
+        }
         return render(request, 'note/note_storage_services.html', context)
 
     @staticmethod

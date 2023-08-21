@@ -426,11 +426,11 @@ def run_initiator(source_from, source_to):
     yield total_size + portion_size
 
 
-def get_service_names():
+def get_service_names(add_class=False):
     service_names = []
     for subclass in BaseUploader.__subclasses__():
         service_names.append(
-            (subclass.__name__[8:], subclass.verbose_name),
+            (subclass.__name__[8:], subclass if add_class else subclass.verbose_name),
         )
 
     return service_names

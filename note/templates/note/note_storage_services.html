@@ -39,6 +39,7 @@
 
     {{ storage_services|json_script:'storage_services' }}
     {{ service_names|json_script:'service_names' }}
+    {{ service_maps|json_script:'service_maps' }}
 
     <script>
         var URL_ADD_NOTE = 'storage_services/';
@@ -49,6 +50,101 @@
 {% endblock %}
 
 {% block end_of_body %}
+
+    <script>
+			  MapFieldComponent = {
+			      props: ['modelValue', 'name', 'map'],
+			      emits: ['update:modelValue'],
+			      components: {CodeMirrorComponent},
+			      computed: {
+                value: {
+                    get() {
+                       console.log(['get field', JSON.parse(this.modelValue)], this.name);
+                       let map = JSON.parse(this.modelValue);
+                       let value = map[this.name];
+                       return value ? value.toString() : '';
+                    },
+                    set(value) {
+                       console.log(['set field', value]);
+                       let map = JSON.parse(this.modelValue);
+                       map[this.name] = value;
+                       this.$emit('update:modelValue', JSON.stringify(map));
+                    },
+                },
+            },
+			      template: `
+    			      <div>
+                <div class="mb-3 form-group" :id="name + '-group'" v-if="map.type=='string' && map.enum">
+                    <div class="form-floating">
+                        <select v-model="value" v-bind="$attrs" class="form-select form-select-lg mb-3" :id="name + '-field'">
+                            <option
+                                v-for="variant in map.enum"
+                                :value="variant"
+                                :selected="value != value"
+                            >[[ variant ]]</option>
+                        </select>
+                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                    </div>
+                </div>
+                <div class="mb-3 form-group" :id="name + '-group'" v-else-if="map.type=='string'">
+                    <div class="form-floating">
+                        <input v-model="value" v-bind="$attrs" class="form-control" type="text" :id="name + '-field'" :pattern="map.pattern">
+                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                    </div>
+                </div>
+                <div class="mb-3 form-group" :id="name + '-group'" v-else-if="map.type=='integer'">
+                    <div class="form-floating">
+                        <input v-model="value" v-bind="$attrs" class="form-control" type="number" :id="name + '-field'">
+                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                    </div>
+                </div>
+                <div class="form-group" :id="name + '-group'" v-else-if="map.type=='object'">
+                    <label for="exampleFormControlTextarea1">[[ map.description ]]</label>
+                    <code-mirror-component
+                        v-model="value"
+                        v-bind="$attrs"
+                        class="form-control"
+                        id="exampleFormControlTextarea1"
+                        mode="application/ld+json"
+                    ></code-mirror-component>
+                </div>
+            </div>
+			      `,
+			  }
+    </script>
+
+    <script>
+			  MapSerializerComponent = {
+			      props: ['serializerMap', 'modelValue'],
+			      emits: ['update:modelValue'],
+			      computed: {
+                value: {
+                    get() {
+                       console.log(['get', this.modelValue]);
+                       return this.modelValue;
+                    },
+                    set(value) {
+                       console.log(['set', value, this.modelValue]);
+                       this.$emit('update:modelValue', value);
+                    },
+                },
+            },
+			      //data() {
+			      //    return {parsedFieldsValues: JSON.parse(this.fieldsValues)}
+			      //},
+			      components: {MapFieldComponent},
+			      template: `
+			          <map-field-component v-bind="$attrs"
+                    v-for="field in serializerMap"
+                    :key="field.name"
+                    :name="field.name"
+                    :map="field.map"
+                    v-model="value"
+                ></map-field-component>
+			      `,
+			  }
+    </script>
+
     <script>
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'credentials', 'isDefault', 'isNew'],
@@ -62,11 +158,12 @@
                     mIsDefault: this.isDefault,
                     mService: this.service,
                     service_names: JSON.parse(document.getElementById('service_names').textContent),
+                    service_maps: JSON.parse(document.getElementById('service_maps').textContent),
                     badMessage: '',
                 };
             },
             emits: ['toggle'],
-            components: {CodeMirrorComponent},
+            components: {CodeMirrorComponent, MapSerializerComponent},
             template: `
                 <div style="margin-bottom: 3px;" :class="{'collapsed': !collapsed}">
                     <div class="storage_header" @click="toggle">
@@ -95,14 +192,14 @@
 
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
-                                <input v-model="mDescription" class="form-control" type="input" name="description" id="description-field">
+                                <input v-model="mDescription" class="form-control" type="text" name="description" id="description-field">
                                 <label for="description-field" class="form-label">Описание базы</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="source-group">
                             <div class="form-floating">
-                                <input v-model="mSource" class="form-control" type="input" name="source" id="source-field">
+                                <input v-model="mSource" class="form-control" type="text" name="source" id="source-field">
                                 <label for="source-field" class="form-label">Название базы</label>
                              </div>
                         </div>
@@ -114,6 +211,20 @@
                              </div>
                         </div>
 
+                        <div>
+                            Данные для подключения:
+                            <map-serializer-component
+                                v-if="!collapsed"
+                                :serializer-map="service_maps[mService]"
+                                v-model="mCredentials"
+                            ></map-serializer-component>
+                        </div>
+
+                        <br>
+
+                        <input type="hidden" v-model="mCredentials" name="credentials">
+
+                        <!--
                         <div class="form-group" id="credentials-group">
                             <label for="exampleFormControlTextarea1">Данные для подключения</label>
                             <code-mirror-component
@@ -126,6 +237,7 @@
                                 mode="application/ld+json"
                             ></code-mirror-component>
                         </div>
+                        -->
 
                         <div class="alert alert-danger" role="alert" :class="{'d-none': !badMessage}">
                             [[ badMessage ]]
