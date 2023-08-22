@@ -62,6 +62,9 @@
                        console.log(['get field', JSON.parse(this.modelValue)], this.name);
                        let values = JSON.parse(this.modelValue);
                        let value = values[this.name];
+                       if (this.map.type == 'object') {
+                           value = JSON.stringify(value);
+                       }
                        return value ? value.toString() : '';
                     },
                     set(value) {
