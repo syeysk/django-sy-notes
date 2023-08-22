@@ -56,19 +56,20 @@
 			      props: ['modelValue', 'name', 'map'],
 			      emits: ['update:modelValue'],
 			      components: {CodeMirrorComponent},
+			      data() {
+			          return {prefixed_name: 'cred-' + this.name};
+			      },
 			      computed: {
                 value: {
                     get() {
-                       console.log(['get field', JSON.parse(this.modelValue)], this.name);
-                       let values = JSON.parse(this.modelValue);
-                       let value = values[this.name];
-                       if (this.map.type == 'object') {
+											 let values = JSON.parse(this.modelValue);
+											 let value = values[this.name];
+                       if (this.map.type == 'object' && value != undefined && value != '') {
                            value = JSON.stringify(value);
                        }
                        return value ? value.toString() : '';
                     },
                     set(value) {
-                       console.log(['set field', value]);
                        let values = JSON.parse(this.modelValue);
                        if (this.map.type == 'object') {
                            value = JSON.parse(value);
@@ -80,38 +81,39 @@
             },
 			      template: `
     			      <div>
-                <div class="mb-3 form-group" :id="name + '-group'" v-if="map.type=='string' && map.enum">
+                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-if="map.type=='string' && map.enum">
                     <div class="form-floating">
-                        <select v-model="value" v-bind="$attrs" class="form-select form-select-lg mb-3" :id="name + '-field'">
+                        <select v-model="value" v-bind="$attrs" class="form-select form-select-lg mb-3" :id="prefixed_name + '-field'" :name="prefixed_name">
                             <option
                                 v-for="variant in map.enum"
                                 :value="variant"
                                 :selected="value != value"
                             >[[ variant ]]</option>
                         </select>
-                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
                     </div>
                 </div>
-                <div class="mb-3 form-group" :id="name + '-group'" v-else-if="map.type=='string'">
+                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='string'">
                     <div class="form-floating">
-                        <input v-model="value" v-bind="$attrs" class="form-control" type="text" :id="name + '-field'" :pattern="map.pattern">
-                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                        <input v-model="value" v-bind="$attrs" class="form-control" type="text" :id="prefixed_name + '-field'" :pattern="map.pattern" :name="prefixed_name">
+                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
                     </div>
                 </div>
-                <div class="mb-3 form-group" :id="name + '-group'" v-else-if="map.type=='integer'">
+                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='integer'">
                     <div class="form-floating">
-                        <input v-model="value" v-bind="$attrs" class="form-control" type="number" :id="name + '-field'">
-                        <label :for="name + '-field'" class="form-label">[[ map.description ]]</label>
+                        <input v-model="value" v-bind="$attrs" class="form-control" type="number" :id="prefixed_name + '-field'" :name="prefixed_name">
+                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
                     </div>
                 </div>
-                <div class="form-group" :id="name + '-group'" v-else-if="map.type=='object'">
-                    <label for="exampleFormControlTextarea1">[[ map.description ]]</label>
+                <div class="form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='object'">
+                    <label :for="prefixed_name + '-field'">[[ map.description ]]</label>
                     <code-mirror-component
                         v-model="value"
                         v-bind="$attrs"
                         class="form-control"
-                        id="exampleFormControlTextarea1"
+                        :id="prefixed_name + '-field'"
                         mode="application/ld+json"
+                        :name="prefixed_name"
                     ></code-mirror-component>
                 </div>
             </div>
@@ -121,12 +123,25 @@
 
     <script>
 			  MapSerializerComponent = {
-			      props: ['serializerMap', 'modelValue'],
+			      props: ['serializerMap', 'modelValue', 'useDefaultValue'],
 			      emits: ['update:modelValue'],
 			      computed: {
                 value: {
                     get() {
-                       console.log(['get', this.modelValue]);
+                       /*
+                       if (this.mUseDefaultValue && this.serializerMap) {
+                           let defaultModelValue = {};
+                           for (let field_map of this.serializerMap) {
+                               if (field_map.map.default != undefined) {
+                                   defaultModelValue[field_map.name] = field_map.map.default;
+                               }
+                           }
+                           defaultModelValue = JSON.stringify(defaultModelValue);
+                           this.$emit('update:modelValue', defaultModelValue);
+                           this.mUseDefaultValue = false;
+                           return defaultModelValue;
+                       }
+                       */
                        return this.modelValue;
                     },
                     set(value) {
@@ -135,18 +150,19 @@
                     },
                 },
             },
-			      //data() {
-			      //    return {parsedFieldsValues: JSON.parse(this.fieldsValues)}
-			      //},
+			      data() {
+			          return {mUseDefaultValue: this.useDefaultValue};
+			      },
 			      components: {MapFieldComponent},
 			      template: `
-			          <map-field-component v-bind="$attrs"
+			          <map-field-component
                     v-for="field in serializerMap"
                     :key="field.name"
                     :name="field.name"
                     :map="field.map"
                     v-model="value"
                 ></map-field-component>
+                <input type="hidden" v-model="value" v-bind="$attrs">
 			      `,
 			  }
     </script>
@@ -213,22 +229,22 @@
                         <div class="mb-3 form-group" id="is_default-group">
                             <div class="form-check form-switch">
                                 <input v-model="mIsDefault" class="form-check-input" type="checkbox" name="is_default" id="is_default-field">
-                                <label for="is_default-field" class="form-check-label">Использовать по-умолчанию</label>
+                                <label for="is_default-field" class="form-check-label">Использовать как базу по-умолчанию</label>
                              </div>
                         </div>
 
                         <div>
-                            Данные для подключения:
+                            <span v-if="service_maps[mService]">Данные для подключения:</span>
                             <map-serializer-component
                                 v-if="!collapsed"
                                 :serializer-map="service_maps[mService]"
                                 v-model="mCredentials"
+                                :use-default-value="isNew"
+                                name="credentials"
                             ></map-serializer-component>
                         </div>
 
                         <br>
-
-                        <input type="hidden" v-model="mCredentials" name="credentials">
 
                         <!--
                         <div class="form-group" id="credentials-group">
@@ -268,7 +284,16 @@
                         dataType: 'json',
                         data: $(form).serialize(),
                         success: function(result) {
+                            clear_status_fields(form);
                             set_valid_field(form, result.updated_fields);
+
+                            console.log('cred', result.updated_cred_fields);
+                            let updated_cred_fields = result.updated_cred_fields;
+                            for (let index=0; index < updated_cred_fields.length; index++) {
+                                updated_cred_fields[index] = 'cred-' + updated_cred_fields[index];
+                            }
+                            set_valid_field(form, updated_cred_fields);
+
                             self.$.vnode.key = result.id;
                             self.mIsNew = false;
                             self.badMessage = '';
@@ -280,6 +305,16 @@
                             400: function(xhr) {
                                 clear_status_fields(form);
                                 set_invalid_field(form, xhr.responseJSON);
+
+                                let cred_fields_with_prefix = {};
+                                let cred_fields = xhr.responseJSON['credentials'];
+                                if (cred_fields) {
+                                    for (field_name in cred_fields) {
+                                        cred_fields_with_prefix['cred-' + field_name] = cred_fields[field_name];
+                                    }
+                                    set_invalid_field(form, cred_fields_with_prefix);
+                                }
+
                                 self.badMessage = ''
                             },
                             404: function(xhr) {

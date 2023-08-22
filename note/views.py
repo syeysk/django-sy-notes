@@ -256,14 +256,21 @@ class NoteStorageServiceListView(APIView):
             updated_fields = [
                 name for name, value in serializer.validated_data.items() if getattr(instance, name) != value
             ]
+            updated_cred_fields = [
+                name for name, value in serializer.validated_data['credentials'].items()
+                if instance.credentials.get(name) != value
+            ]
             serializer.save()
         else:
             serializer = NoteStorageServiceSerializer(data=request.POST)
             serializer.is_valid(raise_exception=True)
             updated_fields = serializer.fields.keys()
+            updated_cred_fields = serializer.validated_data['credentials'].keys()
             instance = serializer.save(user=request.user)
 
-        response_data = {'id': instance.pk, 'updated_fields': updated_fields}
+        response_data = {
+            'id': instance.pk, 'updated_fields': updated_fields, 'updated_cred_fields': updated_cred_fields,
+        }
         return Response(status=status.HTTP_200_OK, data=response_data)
 
 

@@ -15,7 +15,7 @@ class UploaderTypesenseSerializer(serializers.Serializer):
 
 
 class UploaderFirestoreSerializer(serializers.Serializer):
-    certificate = serializers.JSONField(help_text='Сертификат доступа', default='{}')
+    certificate = serializers.JSONField(help_text='Сертификат доступа', default=dict())
 
 
 class UploaderGithubSerializer(serializers.Serializer):
