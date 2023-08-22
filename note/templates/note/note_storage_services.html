@@ -60,15 +60,18 @@
                 value: {
                     get() {
                        console.log(['get field', JSON.parse(this.modelValue)], this.name);
-                       let map = JSON.parse(this.modelValue);
-                       let value = map[this.name];
+                       let values = JSON.parse(this.modelValue);
+                       let value = values[this.name];
                        return value ? value.toString() : '';
                     },
                     set(value) {
                        console.log(['set field', value]);
-                       let map = JSON.parse(this.modelValue);
-                       map[this.name] = value;
-                       this.$emit('update:modelValue', JSON.stringify(map));
+                       let values = JSON.parse(this.modelValue);
+                       if (this.map.type == 'object') {
+                           value = JSON.parse(value);
+                       }
+                       values[this.name] = value;
+                       this.$emit('update:modelValue', JSON.stringify(values));
                     },
                 },
             },
