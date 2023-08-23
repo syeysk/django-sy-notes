@@ -60,8 +60,8 @@ class NoteSearchView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        limit = data['limit']
-        offset = data['offset']
+        count_on_page = data['count_on_page']
+        page_number = data['page_number']
         query = unquote(query)
         search_by = data['search-by']
         fields = data['fields']
@@ -70,18 +70,21 @@ class NoteSearchView(APIView):
         fields = ('title', 'content') if fields == 'all' else (fields,)
 
         with get_storage_service(request.GET.get('source')) as (uploader, source):
-            response_data = uploader.search(
+            notes, meta = uploader.search(
                 operator=data['operator'],
-                limit=limit,
-                offset=offset,
+                count_on_page=count_on_page,
+                page_number=page_number,
                 fields=fields,
                 file_name=file_name,
                 file_content=file_content,
             )
-            response_data['source'] = source
-            response_data['limit'] = limit
-            response_data['offset'] = offset
-            response_data['path'] = ''
+            response_data = {
+                'results': notes,
+                'source': source,
+                'count_on_page': count_on_page,
+                'page_number': page_number,
+                'pages': meta['num_pages']
+            }
 
         return Response(status=status.HTTP_200_OK, data=response_data)
 

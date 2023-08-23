@@ -200,23 +200,40 @@ class NoteEditorView(APIView):
 
 class NoteListView(View):
     def get(self, request):
+        search_string = request.GET.get('s')
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
-
-        with get_storage_service(request.COOKIES.get('source'), request.user) as (uploader, source):
-            notes, meta = uploader.get_list(page_number, count_on_page)
+        source = request.COOKIES.get('source')
 
         context = {
-            'notes': notes,
-            'last_page': meta['num_pages'],
+            'source': source,
+            'sources': NoteStorageServiceModel.objects.values('source', 'description'),
             'current_page': page_number,
             'next_page': page_number + 1,
             'prev_page': page_number - 1,
-            'sources': NoteStorageServiceModel.objects.values('source', 'description'),
-            'source': source,
         }
-        return render(request, 'note/note_list.html', context)
+
+        try:
+            with get_storage_service(source, request.user) as (uploader, source):
+                if search_string:
+                    notes, meta = uploader.search(
+                        'or', count_on_page, page_number, ['title', 'content'], search_string, search_string,
+                    )
+                else:
+                    notes, meta = uploader.get_list(page_number, count_on_page)
+
+                context.update({
+                    'notes': notes,
+                    'last_page': meta['num_pages'],
+                    'source': source,
+                })
+                return render(request, 'note/note_list.html', context)
+        except Exception as error:
+            context['error'] = str(error) + 'tete'
+            return render(request, 'note/note_list.html', context)
+
+
 
 
 class NoteStorageServiceListView(APIView):

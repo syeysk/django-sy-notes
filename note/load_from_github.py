@@ -262,12 +262,13 @@ class UploaderDjangoServer(BaseUploader):
     def search(
         self,
         operator,
-        limit,
-        offset,
+        count_on_page,
+        page_number,
         fields,
         file_name=None,
         file_content=None,
     ):
+        from django.core.paginator import Paginator
         from note.models import Note, prepare_to_search
         filter = {}
         if file_name:
@@ -284,13 +285,14 @@ class UploaderDjangoServer(BaseUploader):
         else:
             notes = notes.filter(**filter)
 
-        count = notes.count()
+        paginator = Paginator(notes, count_on_page)
+        page = paginator.page(page_number)
 
-        results = list(notes[offset:limit+offset].values(*fields))
-        for note in results:
+        notes = list(page.object_list.values(*fields))
+        for note in notes:
             note['url'] = self.get_note_url(note['title'])
 
-        return dict(results=results, count=count)
+        return notes, {'num_pages': paginator.num_pages}
 
     def get_note_url(self, title):
         return '{}/{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))

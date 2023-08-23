@@ -12,10 +12,14 @@
     </p>
 
     <script>
-        function set_search(name, value) {
+        function set_search(name_values_list) {
             search = new URLSearchParams(window.location.search);
-            if (value) search.set(name, value);
-            else search.delete(name);
+            for (let name_value of name_values_list) {
+                let name = name_value[0];
+                let value = name_value[1];
+								if (value) search.set(name, value);
+								else search.delete(name);
+						}
             window.location.search = search.toString();
         }
 		</script>
@@ -28,9 +32,16 @@
         {% endfor %}
 		</select>
 
+    <form>
+        <input type="text" name="search_string" placeholder="Поиск по заметками" value="{{request.GET.s}}">
+        <input type="button" value="Найти" onclick="set_search([['s', this.form.search_string.value], ['p', 1]])">
+		</form>
+
     {% if not notes %}
         <p>База пуста. Вы можете выбрать другую базу либо добавить первую заметку</p>
     {% endif %}
+
+    {{ error }}
 
 		{% for note in notes %}
         <h3><a href="{% url 'note_editor' note.title %}">{{ note.title }}</a></h3>
@@ -38,19 +49,21 @@
 		{% endfor %}
 
     <p>
+			  {% with request.GET.s|urlencode as search %}
 		  	{% if current_page > 1 %}
-    		  	<a href="{% url 'note_list' %}?p=1">1</a>
+    		  	<a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p=1">1</a>
 		  	{% endif %}
 			  {% if current_page > 2 %}
-    			  <a href="{% url 'note_list' %}?p={{ prev_page }}"> << </a>
+    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ prev_page }}"> << </a>
 		  	{% endif %}
 			  <span>{{ current_page }}</span>
 			  {% if current_page < last_page|sub:1 %}
-    			  <a href="{% url 'note_list' %}?p={{ next_page }}"> >> </a>
+    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ next_page }}"> >> </a>
 		  	{% endif %}
 			  {% if current_page < last_page %}
-    			  <a href="{% url 'note_list' %}?p={{ last_page }}">{{ last_page }}</a>
+    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
 		  	{% endif %}
+			  {% endwith %}
 		</p>
 
 {% endblock %}

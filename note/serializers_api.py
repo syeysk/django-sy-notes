@@ -28,15 +28,26 @@ class NoteSearchViewSerializer(serializers.Serializer):
         (OPERATOR_OR, 'или'),
         (OPERATOR_AND, 'и'),
     )
-    fields = serializers.ChoiceField(required=False, default=FIELD_TITLE, choices=FIELDS_CHOICES, help_text='Возвращаемые поля')
-    operator = serializers.ChoiceField(required=False, default=OPERATOR_OR, choices=OPERATORS_CHOICES, help_text='Логический оператор поиска по полям')
-    limit = serializers.IntegerField(min_value=1, max_value=100,  help_text='Количество результатов на странице', required=False, default=10)
-    offset = serializers.IntegerField(min_value=0, help_text='Смещение результатов', required=False, default=0)
+    fields = serializers.ChoiceField(
+        required=False, default=FIELD_TITLE, choices=FIELDS_CHOICES, help_text='Возвращаемые поля',
+    )
+    operator = serializers.ChoiceField(
+        required=False, default=OPERATOR_OR, choices=OPERATORS_CHOICES, help_text='Логический оператор поиска по полям',
+    )
+    count_on_page = serializers.IntegerField(
+        min_value=1, max_value=100,  help_text='Количество результатов на странице', required=False, default=10,
+    )
+    page_number = serializers.IntegerField(
+        min_value=0, help_text='Номер страницы', required=False, default=0,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        search_by_field = serializers.ChoiceField(
+            required=False, default=self.SEARCH_BY_ALL, choices=self.SEARCH_BYS_CHOICES, help_text='Поиск по полям',
+        )
         self.fields.update(
-            {'search-by': serializers.ChoiceField(required=False, default=self.SEARCH_BY_ALL, choices=self.SEARCH_BYS_CHOICES, help_text='Поиск по полям')}
+            {'search-by': search_by_field}
         )
 
 
@@ -68,15 +79,20 @@ class NoteResponseSerializer(serializers.Serializer):
 
 class NoteSearchNoteResponseSerializer(serializers.Serializer):
     """Сериализатор заметки"""
-    content = serializers.CharField(max_length=20000, help_text='Содержимое заметки. Наличие поля зависит от параметра `fields`')
+    content = serializers.CharField(
+        max_length=20000, help_text='Содержимое заметки. Наличие поля зависит от параметра `fields`',
+    )
     title = serializers.CharField(max_length=255, help_text='Имя заметки. Наличие поля зависит от параметра `fields`')
+    url = serializers.CharField(max_length=100, help_text='URL к заметке в базе')
 
 
 class NoteSearchResponseSerializer(serializers.Serializer):
     """Сериализатор результатов поиска заметки"""
     count = serializers.IntegerField(min_value=0, help_text='Количество всех найденных заметок')
-    limit = serializers.IntegerField(min_value=1, max_value=100,  help_text='Количество результатов на странице')
-    offset = serializers.IntegerField(min_value=0, help_text='Смещение результатов')
+    pages = serializers.IntegerField(min_value=0, help_text='Количество страниц')
+    count_on_page = serializers.IntegerField(
+        min_value=1, max_value=100,  help_text='Количество результатов на странице',
+    )
+    page_number = serializers.IntegerField(min_value=0, help_text='Номер страницы')
     source = serializers.CharField(max_length=20, help_text='Название базы')
-    path = serializers.CharField(max_length=100, help_text='Путь к заметке в базе')
     results = NoteSearchNoteResponseSerializer()
