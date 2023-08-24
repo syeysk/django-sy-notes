@@ -234,8 +234,6 @@ class NoteListView(View):
             return render(request, 'note/note_list.html', context)
 
 
-
-
 class NoteStorageServiceListView(APIView):
 
     @staticmethod
