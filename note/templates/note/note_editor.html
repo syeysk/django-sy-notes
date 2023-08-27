@@ -2,7 +2,7 @@
 {% load markdownify %}
 {% load static %}
 
-{% block title %}{{ note.title }}{% endblock %}
+{% block title %}{% endblock %}
 {% block page_title %} Заметка | {{ note.title }}{% endblock %}
 
 {% block start_of_head %}
@@ -31,10 +31,6 @@
     <script>
         var URL_SAVE_NOTE = '';
         var CSRF_TOKEN = "{{ csrf_token }}";
-
-        function update_page(title) {
-            $('body h1')[0].textContent = title;
-        }
     </script>
 
     <script>
@@ -86,6 +82,7 @@
         NoteComponent = {
             template: `
                 <input type="button" value="Edit" @click="edit" :class="{'d-none': mode == 'edit'}">
+                <teleport to="h1">[[ title ]]</teleport>
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
                     :content_html="content_html"
@@ -129,6 +126,7 @@
                     let self = this;
                     this.successMessage = 'Сохраняем...';
                     let form = event.target.form;
+                    title = title.trim();
                     if (this.is_new) {
                         $.ajax({
                             url: URL_SAVE_NOTE,
@@ -148,7 +146,6 @@
                                 self.title = title;
                                 self.content = content;
                                 self.content_html = result.content_html;
-                                update_page(title);
                                 self.view();
                                 self.is_new = false;
                             },
@@ -182,7 +179,6 @@
                                 self.title = title;
                                 self.content = content;
                                 self.content_html = result.content_html;
-                                update_page(title);
                                 self.view();
                             },
                             statusCode: {
