@@ -149,7 +149,9 @@ class NoteEditorView(APIView):
 
         Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
         """
-        #self.authenticate()
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = NoteEditViewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -177,6 +179,9 @@ class NoteEditorView(APIView):
     @staticmethod
     def post(request):
         """Метод создания новой заметки"""
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = NoteCreateViewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -235,7 +240,6 @@ class NoteListView(View):
 
 
 class NoteStorageServiceListView(APIView):
-
     @staticmethod
     def get(request):
         storages = NoteStorageServiceModel.objects.order_by('-pk')
@@ -264,8 +268,14 @@ class NoteStorageServiceListView(APIView):
 
     @staticmethod
     def post(request, pk=None):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         if pk:
             instance = NoteStorageServiceModel.objects.get(pk=pk, user=request.user)
+            if request.user.pk != instance.user.pk:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
             serializer = NoteStorageServiceSerializer(instance, data=request.POST)
             serializer.is_valid(raise_exception=True)
             updated_fields = [
@@ -304,6 +314,9 @@ class NoteImportExportView(APIView):
 
     def post(self, request):
         # TODO: Использовать web-сокеты для отображения ползунка и статистики на фронте
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         total_count = 0
         command = request.data['command']
         if command == 'copy-from-to':
@@ -316,6 +329,8 @@ class NoteImportExportView(APIView):
             with get_storage_service(source_to, request.user) as (uploader, source):
                 if source == source_to:
                     uploader.clear()
+                else:
+                    return Response(status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'command': ['Неизвестная команда']})
 

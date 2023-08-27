@@ -182,6 +182,7 @@
                     service_names: JSON.parse(document.getElementById('service_names').textContent),
                     service_maps: JSON.parse(document.getElementById('service_maps').textContent),
                     badMessage: '',
+                    is_authenticated: this.credentials != undefined,
                 };
             },
             emits: ['toggle'],
@@ -214,26 +215,26 @@
 
                         <div class="mb-3 form-group" id="description-group">
                             <div class="form-floating">
-                                <input v-model="mDescription" class="form-control" type="text" name="description" id="description-field">
-                                <label for="description-field" class="form-label">Описание базы</label>
+                                <input v-model="mDescription" class="form-control" type="text" name="description" :id="'description-' + $.vnode.key + 'field'" :disabled="!is_authenticated">
+                                <label :for="'description-' + $.vnode.key + 'field'" class="form-label">Описание базы</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="source-group">
                             <div class="form-floating">
-                                <input v-model="mSource" class="form-control" type="text" name="source" id="source-field">
-                                <label for="source-field" class="form-label">Название базы</label>
+                                <input v-model="mSource" class="form-control" type="text" name="source" :id="'source-' + $.vnode.key + 'field'" :disabled="!is_authenticated">
+                                <label :for="'source-' + $.vnode.key + 'field'" class="form-label">Название базы</label>
                              </div>
                         </div>
 
                         <div class="mb-3 form-group" id="is_default-group">
                             <div class="form-check form-switch">
-                                <input v-model="mIsDefault" class="form-check-input" type="checkbox" name="is_default" id="is_default-field">
-                                <label for="is_default-field" class="form-check-label">Использовать как базу по-умолчанию</label>
+                                <input v-model="mIsDefault" class="form-check-input" type="checkbox" name="is_default" :id="'is_default-' + $.vnode.key + 'field'" :disabled="!is_authenticated">
+                                <label :for="'is_default-' + $.vnode.key + 'field'" class="form-check-label">Использовать как базу по-умолчанию</label>
                              </div>
                         </div>
 
-                        <div>
+                        <div v-if="is_authenticated">
                             <span v-if="service_maps[mService]">Данные для подключения:</span>
                             <map-serializer-component
                                 v-if="!collapsed"
@@ -242,30 +243,16 @@
                                 :use-default-value="isNew"
                                 name="credentials"
                             ></map-serializer-component>
+
+                            <br>
+
+                            <div class="alert alert-danger" role="alert" :class="{'d-none': !badMessage}">
+                                [[ badMessage ]]
+                            </div>
+
+                            <input type="button" value="Сохранить" class="btn btn-secondary" @click="save">
+
                         </div>
-
-                        <br>
-
-                        <!--
-                        <div class="form-group" id="credentials-group">
-                            <label for="exampleFormControlTextarea1">Данные для подключения</label>
-                            <code-mirror-component
-                                v-if="!collapsed"
-                                v-model="mCredentials"
-                                name="credentials"
-                                class="form-control"
-                                id="exampleFormControlTextarea1"
-                                rows="3"
-                                mode="application/ld+json"
-                            ></code-mirror-component>
-                        </div>
-                        -->
-
-                        <div class="alert alert-danger" role="alert" :class="{'d-none': !badMessage}">
-                            [[ badMessage ]]
-                        </div>
-
-                        <input type="button" value="Сохранить" class="btn btn-secondary" @click="save">
 
                     </form>
                 </div>
@@ -338,8 +325,10 @@
             },
             components: {NoteStorageServiceComponent},
             template: `
-                <input type="button" value="Добавить" @click="add_server" class="btn btn-primary">
-                <br><br>
+                {% if request.user.is_authenticated %}
+									<input type="button" value="Добавить" @click="add_server" class="btn btn-primary">
+									<br><br>
+                {% endif %}
                 <note-storage-service-component
                     v-for="storage in storages"
                     :key="storage.pk"

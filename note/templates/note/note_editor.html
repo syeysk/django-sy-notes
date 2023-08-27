@@ -81,21 +81,25 @@
     <script>
         NoteComponent = {
             template: `
-                <input type="button" value="Edit" @click="edit" :class="{'d-none': mode == 'edit'}">
-                <teleport to="h1">[[ title ]]</teleport>
+                {% if request.user.is_authenticated %}
+										<input type="button" value="Редактировать заметку" @click="edit" class="btn btn-secondary" :class="{'d-none': mode == 'edit'}">
+                {% endif %}
+								<teleport to="h1">[[ title ]]</teleport>
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
                     :content_html="content_html"
                 ></note-viewer-component>
-                <note-editor-component
-                    v-if="mode != 'view'"
-                    :title="title"
-                    :content="content"
-                    :error-message="errorMessage"
-                    :success-message="successMessage"
-                    @save="save"
-                    @cancel="cancel"
-                ></note-editor-component>
+                {% if request.user.is_authenticated %}
+										<note-editor-component
+												v-if="mode != 'view'"
+												:title="title"
+												:content="content"
+												:error-message="errorMessage"
+												:success-message="successMessage"
+												@save="save"
+												@cancel="cancel"
+										></note-editor-component>
+                {% endif %}
             `,
             components: {NoteViewerComponent, NoteEditorComponent},
             data() {
