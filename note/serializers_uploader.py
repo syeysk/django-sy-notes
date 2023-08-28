@@ -23,3 +23,7 @@ class UploaderGithubSerializer(serializers.Serializer):
     repo = serializers.CharField(help_text='Название репозитория')
     branch = serializers.CharField(help_text='Наименование ветки')
     directory = serializers.CharField(help_text='Директория, в которой хранятся заметки')
+
+
+class UploaderDjangoServerSerializer(serializers.Serializer):
+    path = serializers.CharField(help_text='Путь')

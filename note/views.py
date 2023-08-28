@@ -212,11 +212,10 @@ class NoteListView(View):
         source = request.COOKIES.get('source')
 
         context = {
+            'error': '',
             'source': source,
             'sources': NoteStorageServiceModel.objects.values('source', 'description'),
             'current_page': page_number,
-            'next_page': page_number + 1,
-            'prev_page': page_number - 1,
         }
 
         try:
@@ -235,7 +234,9 @@ class NoteListView(View):
                 })
                 return render(request, 'note/note_list.html', context)
         except Exception as error:
-            context['error'] = str(error) + 'tete'
+            context['error'] = str(error)
+            context['notes'] = []
+            context['last_page'] = 0
             return render(request, 'note/note_list.html', context)
 
 

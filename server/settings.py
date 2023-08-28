@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_spectacular',
-    'mathfilters',
     'markdownify.apps.MarkdownifyConfig',
     'django_sy_framework.base',
     'django_sy_framework.custom_auth',

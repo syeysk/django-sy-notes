@@ -1,5 +1,4 @@
 {% extends 'template.html' %}
-{% load mathfilters %}
 
 {% block title %}Заметки{% endblock %}
 
@@ -8,7 +7,7 @@
 {% block content %}
 
     <p>
-        Совокупность заметок является базой знаний. Поиск по базе доступен через телеграм-бот и дискорд-сервер.
+        Совокупность заметок является базой знаний. <!--Поиск по базе доступен через телеграм-бот и дискорд-сервер.-->
     </p>
 
     <script>
@@ -33,7 +32,7 @@
 		</select>
 
     <form>
-        <input type="text" name="search_string" placeholder="Поиск по заметками" value="{{request.GET.s}}">
+        <input type="text" name="search_string" placeholder="Поиск по заметками" value="{% if 's' in request.GET %}{{request.GET.s}}{% endif %}">
         <input type="button" value="Найти" onclick="set_search([['s', this.form.search_string.value], ['p', 1]])">
 		</form>
 
@@ -49,21 +48,19 @@
 		{% endfor %}
 
     <p>
-			  {% with request.GET.s|urlencode as search %}
 		  	{% if current_page > 1 %}
-    		  	<a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p=1">1</a>
+    		  	<a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p=1">1</a>
 		  	{% endif %}
 			  {% if current_page > 2 %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ prev_page }}"> << </a>
+    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ current_page|add:-1 }}"> << </a>
 		  	{% endif %}
 			  <span>{{ current_page }}</span>
-			  {% if current_page < last_page|sub:1 %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ next_page }}"> >> </a>
+			  {% if current_page < last_page|add:-1 %}
+    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ current_page|add:1 }}"> >> </a>
 		  	{% endif %}
 			  {% if current_page < last_page %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={{search}}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
+    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
 		  	{% endif %}
-			  {% endwith %}
 		</p>
 
 {% endblock %}

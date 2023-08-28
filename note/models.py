@@ -9,7 +9,8 @@ def prepare_to_search(value):
 
 
 class Note(models.Model):
-    title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True, unique=True)
+    path = models.CharField(verbose_name='Путь', max_length=10, null=False, db_index=True)
+    title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
     content = models.TextField(verbose_name='Текст', null=False)
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
     search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=255, null=False, db_index=True)
@@ -18,6 +19,9 @@ class Note(models.Model):
         db_table = 'app_note_note'
         verbose_name = 'Заметка'
         verbose_name_plural = 'Заметки'
+        constraints = [
+            models.UniqueConstraint(fields=('path', 'title'), name='unique_note')
+        ]
 
     def fetch_search_fields(self):
         self.search_content = prepare_to_search(self.content)
