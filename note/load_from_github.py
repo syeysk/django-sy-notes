@@ -1,3 +1,4 @@
+import json
 import os.path
 import zipfile
 from contextlib import contextmanager
@@ -461,7 +462,7 @@ def get_storage_service(source=None, user=None):
         source = storage.source
     else:
         service_name = settings.DEFAULT_SOURCE_SERVICE_NAME
-        service_credentials = {}
+        service_credentials = json.loads(settings.DEFAULT_SOURCE_CREDENTIALS)
         source = settings.DEFAULT_SOURCE_CODE
 
     uploader_class = service_name_to_class(service_name)
