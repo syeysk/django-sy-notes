@@ -16,6 +16,7 @@ from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
+from django_sy_framework.linker.utils import link_instance_from_request
 from note.load_from_github import get_storage_service, get_service_names, run_initiator
 from note.models import (
     Note,
@@ -126,6 +127,22 @@ class NoteEditorView(APIView):
     def get(request, quoted_title=None):
         source = request.COOKIES.get('source')
         if quoted_title is None:
+            if not request.user.is_authenticated:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+            link_to = request.GET.get('link_to')
+            if link_to:
+                source = f'.{link_to}'
+                if not NoteStorageServiceModel.objects.filter(source=source).first():
+                    storage = NoteStorageServiceModel(
+                        service='DjangoServer',
+                        credentials={'path': source},
+                        description=f'База знаний для внешнего "{link_to}"',
+                        user=request.user,
+                        source=source,
+                    )
+                    storage.save()
+
             context = {'note': None, 'source': source}
             return render(request, 'note/note_editor.html', context)
 
@@ -195,6 +212,8 @@ class NoteEditorView(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
             uploader.add(title, content)
+
+        link_instance_from_request(Note.objects.filter(title=title, path=data['source']).first(), request)
 
         content_yaml, content_md = separate_yaml(content)
         return Response(

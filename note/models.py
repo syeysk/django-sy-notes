@@ -24,6 +24,10 @@ class Note(models.Model):
     def url(self):
         return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', self.title))
 
+    @property
+    def url_new(self):
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_create'))
+
     class Meta:
         db_table = 'app_note_note'
         verbose_name = 'Заметка'
