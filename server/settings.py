@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'markdownify.apps.MarkdownifyConfig',
     'django_sy_framework.base',
     'django_sy_framework.custom_auth',
+    'django_sy_framework.linker',
     'server',
     'note',
     'pages',

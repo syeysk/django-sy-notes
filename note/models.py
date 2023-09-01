@@ -1,6 +1,10 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+from django.shortcuts import resolve_url
 
+from django_sy_framework.linker.models import Linker
 from note.load_from_github import get_service_names
 
 
@@ -14,6 +18,11 @@ class Note(models.Model):
     content = models.TextField(verbose_name='Текст', null=False)
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
     search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=255, null=False, db_index=True)
+    linker = GenericRelation(Linker, related_query_name='note')
+
+    @property
+    def url(self):
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', self.title))
 
     class Meta:
         db_table = 'app_note_note'
