@@ -129,6 +129,7 @@ AUTH_USER_MODEL = 'custom_auth.CustomAuthUser'
 AUTHENTICATION_BACKENDS = ['django_sy_framework.custom_auth.backend.CustomAuthBackend']
 MICROSERVICES_TOKENS = {
     'to_auth': env('MICROSERVICE_TOKEN_TO_AUTH'),
+    'from_platform': env('MICROSERVICE_TOKEN_FROM_PLATFORM'),
 }
 MICROSERVICES_URLS = {
     'auth': env('MICROSERVICE_URL_AUTH'),
