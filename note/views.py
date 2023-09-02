@@ -26,7 +26,7 @@ from note.models import (
 from note.serializers import (
     NoteCreateViewSerializer,
     NoteEditViewSerializer,
-    NoteStorageServiceSerializer,
+    NoteStorageServiceSerializer, ERROR_NAME_MESSAGE,
 )
 
 
@@ -174,16 +174,19 @@ class NoteEditorView(APIView):
         data = serializer.validated_data
 
         title = unquote(quoted_title)
-        new_title = data.get('new_title')
-        new_content = data.get('new_content')
+        new_title = data.get('title')
+        new_content = data.get('content')
+
+        if title.startswith('.'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
         with get_storage_service(data['source']) as (uploader, _):
             if not uploader.get(title=title):
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
             if new_title and new_title != title and uploader.get(title=new_title):
-                response_data = {'detail': 'Заметка с таким названием уже существует'}
-                return Response(status=status.HTTP_200_OK, data=response_data)
+                response_data = {'title': ['Заметка с таким названием уже существует']}
+                return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
             updated_fields = uploader.edit(title, new_title, new_content)
 
@@ -262,6 +265,7 @@ class NoteListView(View):
 class NoteStorageServiceListView(APIView):
     @staticmethod
     def get(request):
+        """The view shows the list of storages"""
         storages = NoteStorageServiceModel.objects.order_by('-pk')
         common_values = ['service', 'description', 'source', 'pk']
         if request.user.is_authenticated:
@@ -288,6 +292,7 @@ class NoteStorageServiceListView(APIView):
 
     @staticmethod
     def post(request, pk=None):
+        """The view edit a storage or create a new storage if pk=0"""
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 

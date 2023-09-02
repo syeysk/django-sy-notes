@@ -51,8 +51,15 @@
             template: `
                 <form>
                     <input name="source" type="hidden" value="{{ source }}">
-                    <input name="title" v-model="mTitle" style="width:99%;border-bottom-left-radius: 0;border-bottom-right-radius: 0;" class="form-control" placeholder="Заголовок">
-                    <code-mirror-component v-model="mContent" name="content" mode="markdown"></code-mirror-component>
+                    <div class="form-group" id="title-group">
+                        <div class="form-floating">
+                            <input name="title" v-model="mTitle" style="width:99%;border-bottom-left-radius: 0;border-bottom-right-radius: 0;" class="form-control" placeholder="Заголовок" id="title-field">
+                            <label for="title-field" class="form-label">Заголовок заметки</label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="content-group">
+                        <code-mirror-component v-model="mContent" name="content" mode="markdown" id="content-field"></code-mirror-component>
+                    </div>
                     <br>
                     <div :class="{'d-none': !errorMessage}">
                         <span>[[ errorMessage ]]</span>
@@ -140,6 +147,7 @@
                             dataType: 'json',
                             data: {title: title, content: content, source: form.source.value},
                             success: function(result) {
+                                clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
                                 self.successMessage = '';
                                 history.pushState(
@@ -158,6 +166,7 @@
                                     self.errorMessage = 'ошибка сохранения'
                                 },
                                 400: function(xhr) {
+                                    clear_status_fields(form);
                                     set_invalid_field(form, xhr.responseJSON);
                                     self.errorMessage = ''
                                 },
@@ -171,8 +180,9 @@
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
                             dataType: 'json',
-                            data: {new_title: title, new_content: content, source: form.source.value},
+                            data: {title: title, content: content, source: form.source.value},
                             success: function(result) {
+                                clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
                                 self.successMessage = '';
                                 history.pushState(
@@ -190,10 +200,12 @@
                                     self.errorMessage = 'ошибка сохранения'
                                 },
                                 400: function(xhr) {
+                                    clear_status_fields(form);
                                     set_invalid_field(form, xhr.responseJSON);
                                     self.errorMessage = ''
                                 },
                                 404: function(xhr) {
+                                    clear_status_fields(form);
                                     self.errorMessage = 'Заметка с таким названием не существует. Возможно, она была переименована'
                                 },
                             },
