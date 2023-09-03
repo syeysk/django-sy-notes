@@ -34,7 +34,7 @@ class NoteCreateViewSerializer(serializers.Serializer):
 
 class NoteStorageServiceSerializer(serializers.ModelSerializer):
     def validate_source(self, value):
-        if value.startswith('.') or self.instance.source.startswith('.'):
+        if value.startswith('.') or (self.instance.source.startswith('.') if self.instance else False):
             raise serializers.ValidationError([ERROR_NAME_MESSAGE])
 
         return value
