@@ -16,7 +16,6 @@ def prepare_to_search(value):
 
 class Note(models.Model):
     storage_uuid = models.UUIDField(null=False, blank=False)
-    path = models.CharField(verbose_name='Путь', max_length=10, null=False, db_index=True)
     title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
     content = models.TextField(verbose_name='Текст', null=False)
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
