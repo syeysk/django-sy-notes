@@ -1,4 +1,3 @@
-import json
 import os.path
 import zipfile
 from contextlib import contextmanager
@@ -13,7 +12,6 @@ from firebase_admin import credentials, delete_app, firestore, initialize_app
 from typesense import Client
 
 from note.serializers_uploader import (
-    UploaderDjangoServerSerializer,
     UploaderFirestoreSerializer,
     UploaderGithubSerializer,
     UploaderTypesenseSerializer,
@@ -109,7 +107,7 @@ class UploaderFirestore(BaseUploader):
     serializer = UploaderFirestoreSerializer
     MAX_PORTION_SIZE = 500
 
-    def __init__(self, certificate):
+    def __init__(self, _, certificate):
         cred = credentials.Certificate(certificate)
         self.app = initialize_app(cred)
         self.db = firestore.client()
@@ -190,7 +188,7 @@ class UploaderTypesense(BaseUploader):
     }
     index = 0
 
-    def __init__(self, server, port, protocol, api_key):
+    def __init__(self, _, server, port, protocol, api_key):
         self.client = Client({
             'nodes': [{
                 'host': server,
@@ -237,14 +235,13 @@ class UploaderTypesense(BaseUploader):
 
 class UploaderDjangoServer(BaseUploader):
     verbose_name = 'Микросервис заметок'
-    serializer = UploaderDjangoServerSerializer
     MAX_PORTION_SIZE = 400
     portion = []
 
-    def __init__(self, path):
+    def __init__(self, storage_uuid):
         from note.models import Note
-        self.path = path
-        self.queryset = Note.objects.filter(path=path)
+        self.storage_uuid = storage_uuid
+        self.queryset = Note.objects.filter(storage_uuid=storage_uuid)
 
     def clear(self):
         self.queryset.delete()
@@ -254,7 +251,7 @@ class UploaderDjangoServer(BaseUploader):
         fields = Note(
             title=file_name,
             content=file_content,
-            path=self.path,
+            storage_uuid=self.storage_uuid,
         )
         fields.fetch_search_fields()
         self.portion.append(fields)
@@ -309,7 +306,7 @@ class UploaderDjangoServer(BaseUploader):
 
     def add(self, title, content):
         from note.models import Note
-        note = Note(title=title, content=content, path=self.path)
+        note = Note(title=title, content=content, storage_uuid=self.storage_uuid)
         note.fetch_search_fields()
         note.save()
         return {'title': note.title, 'content': note.content}
@@ -355,7 +352,7 @@ class UploaderGithub(BaseUploader):
     URL_ARCHIVE = 'https://github.com/{}/{}/archive/refs/heads/{}.zip'
     URL_NOTE = 'https://raw.githubusercontent.com/{}/{}/{}{}/{}.md'
 
-    def __init__(self, owner, repo, branch, directory):
+    def __init__(self, _, owner, repo, branch, directory):
         self.owner = owner
         self.repo = repo
         self.branch = branch
@@ -456,17 +453,18 @@ def get_storage_service(source=None, user=None):
     elif source:
         storage = NoteStorageServiceModel.objects.filter(source=source).first()
 
-    if storage:
-        service_name = storage.service
-        service_credentials = storage.credentials
-        source = storage.source
-    else:
-        service_name = settings.DEFAULT_SOURCE_SERVICE_NAME
-        service_credentials = json.loads(settings.DEFAULT_SOURCE_CREDENTIALS)
-        source = settings.DEFAULT_SOURCE_CODE
+    if not storage:
+        storage = NoteStorageServiceModel.objects.filter(source=settings.DEFAULT_SOURCE_CODE).first()
+        if not storage:
+            raise Exception(f'not found default source {settings.DEFAULT_SOURCE_CODE}')
+
+    service_name = storage.service
+    service_credentials = storage.credentials
+    source = storage.source
+    storage_uuid = storage.uuid
 
     uploader_class = service_name_to_class(service_name)
-    uploader = uploader_class(**service_credentials)
+    uploader = uploader_class(storage_uuid, **service_credentials)
     try:
         yield uploader, source
     finally:

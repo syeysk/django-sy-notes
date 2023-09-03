@@ -136,7 +136,6 @@ class NoteEditorView(APIView):
                 if not NoteStorageServiceModel.objects.filter(source=source).first():
                     storage = NoteStorageServiceModel(
                         service='DjangoServer',
-                        credentials={'path': source},
                         description=f'База знаний для внешнего "{link_to}"',
                         user=request.user,
                         source=source,
@@ -216,7 +215,9 @@ class NoteEditorView(APIView):
 
             uploader.add(title, content)
 
-        link_instance_from_request(Note.objects.filter(title=title, path=data['source']).first(), request)
+            if 'link_to' in request.GET:
+                instance = Note.objects.filter(title=title, storage_uuid=uploader.storage_uuid).first()
+                link_instance_from_request(instance, request)
 
         content_yaml, content_md = separate_yaml(content)
         return Response(
