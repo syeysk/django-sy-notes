@@ -24,7 +24,8 @@ class Note(models.Model):
 
     @property
     def url(self):
-        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', self.title))
+        storage = NoteStorageServiceModel.objects.filter(uuid=self.storage_uuid).first()
+        return '{}{}?source={}'.format(settings.SITE_URL, resolve_url('note_editor', self.title), storage.source)
 
     @property
     def url_new(self):

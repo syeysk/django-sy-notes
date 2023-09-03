@@ -125,7 +125,7 @@ def note_hook(request):  # TODO: метод хука планируется пе
 class NoteEditorView(APIView):
     @staticmethod
     def get(request, quoted_title=None):
-        source = request.COOKIES.get('source')
+        source = request.GET.get('source') or request.COOKIES.get('source')
         if quoted_title is None:
             if not request.user.is_authenticated:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -234,7 +234,7 @@ class NoteListView(View):
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
-        source = request.COOKIES.get('source')
+        source = request.GET.get('source') or request.COOKIES.get('source')
 
         context = {
             'error': '',
