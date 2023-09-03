@@ -243,7 +243,11 @@ class NoteListView(View):
             'current_page': page_number,
         }
 
-        user = request.user if request.user.is_authenticated else None
+        user = request.user
+        if request.user.is_authenticated:
+            if source:
+                user = None
+
         try:
             with get_storage_service(source, user) as (uploader, source):
                 if search_string:
