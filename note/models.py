@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
@@ -13,6 +15,7 @@ def prepare_to_search(value):
 
 
 class Note(models.Model):
+    storage_uuid = models.UUIDField(null=False, blank=False)
     path = models.CharField(verbose_name='Путь', max_length=10, null=False, db_index=True)
     title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
     content = models.TextField(verbose_name='Текст', null=False)
@@ -33,7 +36,10 @@ class Note(models.Model):
         verbose_name = 'Заметка'
         verbose_name_plural = 'Заметки'
         constraints = [
-            models.UniqueConstraint(fields=('path', 'title'), name='unique_note')
+            models.UniqueConstraint(fields=('storage_uuid', 'title'), name='unique_note')
+        ]
+        indexes = [
+            models.Index(fields=('storage_uuid',), name='index_storage_uuid_note'),
         ]
 
     def fetch_search_fields(self):
@@ -62,6 +68,7 @@ class NoteStorageServiceModel(models.Model):
         db_index=True,
         help_text='Используется для указания базы при поиске, редактировании и отображении заметок',
     )
+    uuid = models.UUIDField(null=False, blank=False, unique=True, default=uuid.uuid4)
 
     class Meta:
         verbose_name = 'База заметок'
