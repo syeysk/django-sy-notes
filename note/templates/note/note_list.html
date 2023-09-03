@@ -23,18 +23,37 @@
         }
 		</script>
 
-    <a href="{% url 'note_create' %}"><input type="button" value="Новая заметка" class="btn btn-primary"></a>
+    <style>
+		    .filter-block {
+		        border: 1px solid #d4c8c8;
+            border-radius: 8px;
+            padding: 10px;
+        }
+		</style>
 
-    <select onchange="document.cookie='source='+this.value; window.location.reload();" class="form-select form-select-lg mb-3">
-        {% for source_dict in sources %}
-            <option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
-        {% endfor %}
-		</select>
+    <div style="text-align: right;">
+        <a href="{% url 'note_create' %}"><input type="button" value="Новая заметка" class="btn btn-primary"></a>
+		</div>
+    <br>
+    <div class="filter-block">
+        <div class="mb-3 form-group" id="source-group">
+  					<div class="form-floating">
+				        <select onchange="document.cookie='source='+this.value; window.location.reload();" class="form-select" id="source-field">
+						        {% for source_dict in sources %}
+						    	    	<option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
+			        			{% endfor %}
+		    		    </select>
+  							<label for="source-field">База знаний</label>
+    				</div>
+				</div>
 
-    <form>
-        <input type="text" name="search_string" placeholder="Поиск по заметками" value="{% if 's' in request.GET %}{{request.GET.s}}{% endif %}">
-        <input type="button" value="Найти" onclick="set_search([['s', this.form.search_string.value], ['p', 1]])">
-		</form>
+				<form>
+   					<div class="input-group mb-3">
+	    					<input type="text" name="search_string" placeholder="Поиск по заметками" value="{% if 's' in request.GET %}{{request.GET.s}}{% endif %}" class="form-control">
+							  <button class="btn btn-outline-secondary" onclick="set_search([['s', this.form.search_string.value], ['p', 1]])">Найти</button>
+				  	</div>
+				</form>
+		</div>
 
     {% if not notes %}
         <p>База пуста. Вы можете выбрать другую базу либо добавить первую заметку</p>

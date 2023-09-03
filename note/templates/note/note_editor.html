@@ -17,6 +17,7 @@
 {% block content %}
     {{ note|json_script:'note_json' }}
 
+    <div style="text-align: right; color: grey;">База: {{ source }}</div>
     <div id="app_note_id"></div>
 {% endblock %}
 
@@ -72,6 +73,7 @@
                     <input type="button" value="Сохранить" @click="save" class="btn btn-primary">
                     &nbsp;
                     <input type="button" value="Отменить" @click="cancel" class="btn btn-secondary">
+                    &nbsp;
                 </form>
             `,
             methods: {
@@ -88,9 +90,6 @@
     <script>
         NoteComponent = {
             template: `
-                {% if request.user.is_authenticated %}
-										<input type="button" value="Редактировать заметку" @click="edit" class="btn btn-secondary" :class="{'d-none': mode == 'edit'}">
-                {% endif %}
 								<teleport to="h1">[[ title ]]</teleport>
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
@@ -106,6 +105,9 @@
 												@save="save"
 												@cancel="cancel"
 										></note-editor-component>
+										<div style="text-align: center;" :class="{'d-none': mode == 'edit'}">
+    										<input type="button" value="Редактировать заметку" @click="edit" class="btn btn-outline-secondary">
+    								</div>
                 {% endif %}
             `,
             components: {NoteViewerComponent, NoteEditorComponent},

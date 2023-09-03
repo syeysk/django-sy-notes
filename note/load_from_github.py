@@ -456,7 +456,7 @@ def get_storage_service(source=None, user=None):
     if not storage:
         storage = NoteStorageServiceModel.objects.filter(source=settings.DEFAULT_SOURCE_CODE).first()
         if not storage:
-            raise Exception(f'not found default source {settings.DEFAULT_SOURCE_CODE}')
+            raise Exception(f'not found default knowledge base "{settings.DEFAULT_SOURCE_CODE}"')
 
     service_name = storage.service
     service_credentials = storage.credentials

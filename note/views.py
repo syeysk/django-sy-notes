@@ -207,17 +207,19 @@ class NoteEditorView(APIView):
 
         title = data['title']
         content = data['content']
+        source = data['source']
 
-        with get_storage_service(data['source']) as (uploader, _):
+        with get_storage_service(source) as (uploader, _):
             if uploader.get(title=title):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
             uploader.add(title, content)
 
-            if 'link_to' in request.GET:
+            link_to = request.GET.get('link_to') or (source[1:] if source.startswith('.project-') else None)
+            if link_to:
                 instance = Note.objects.filter(title=title, storage_uuid=uploader.storage_uuid).first()
-                link_instance_from_request(instance, request)
+                link_instance_from_request(instance, link_to)
 
         content_yaml, content_md = separate_yaml(content)
         return Response(
@@ -241,8 +243,9 @@ class NoteListView(View):
             'current_page': page_number,
         }
 
+        user = request.user if request.user.is_authenticated else None
         try:
-            with get_storage_service(source, request.user) as (uploader, source):
+            with get_storage_service(source, user) as (uploader, source):
                 if search_string:
                     notes, meta = uploader.search(
                         'or', count_on_page, page_number, ['title', 'content'], search_string, search_string,
