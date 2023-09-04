@@ -1,10 +1,13 @@
+import datetime
+import zipfile
 import os
+from io import BytesIO
 from urllib.parse import unquote
 
 import yaml
 import requests
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -335,6 +338,28 @@ class NoteStorageServiceListView(APIView):
 class NoteImportExportView(APIView):
     @staticmethod
     def get(request):
+        command = request.GET.get('command')
+        if command == 'download-archive':
+            # information aout all compress formats: https://docs.python.org/3/library/archiving.html
+            source = request.GET['source-from']
+            archive_file = BytesIO()
+            with zipfile.ZipFile(archive_file, mode='w') as archive:
+                with get_storage_service(source) as (uploader, real_source):
+                    if source == real_source:
+                        page_number = 1
+                        meta = None
+                        while meta is None or page_number <= meta['num_pages']:
+                            notes, meta = uploader.get_list(page_number, 100)
+                            for note in notes:
+                                archive.writestr('{}/{}.md'.format(source, note['title']), note['content'])
+
+                            page_number += 1
+
+            response = HttpResponse(archive_file.getvalue(), content_type='application/zip')
+            datetime_str = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+            response['Content-Disposition'] = f'attachment; filename="notes-{datetime_str}.zip"'
+            return response
+
         storages_from = NoteStorageServiceModel.objects.order_by('-pk').values('description', 'source')
         storages_to = (
             NoteStorageServiceModel.objects
@@ -351,7 +376,7 @@ class NoteImportExportView(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         total_count = 0
-        command = request.data['command']
+        command = request.data.get('command')
         if command == 'copy-from-to':
             source_to = request.data['source-to']
             source_from = request.data['source-from']

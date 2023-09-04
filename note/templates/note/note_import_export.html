@@ -31,21 +31,25 @@
         <input type="button" value="Начать копирование" class="do_command btn btn-secondary">
     </form>
 
-    <!--
+
     <h3>Импорт/экспорт заметок из архива</h3>
 
-    <form>
+    <form method="get" target="_blank">
+		  	<input type="hidden" name="command" value="download-archive">
         Из базы:
-        <select name="source-from" class="form-select form-select-lg mb-3">
-            {% for storage in storages_from %}
-                <option value="{{ storage.source }}">
-                    {{ storage.source }} | {{ storage.description }}
-                </option>
-            {% endfor %}
-        </select>
-        <input type="button" value="Скачать архив на компьютер" class="do_command btn btn-secondary">
+   			<div class="input-group mb-3">
+						<select name="source-from" class="form-select">
+								{% for storage in storages_from %}
+										<option value="{{ storage.source }}">
+												{{ storage.source }} | {{ storage.description }}
+										</option>
+								{% endfor %}
+						</select>
+				  	<button class="btn btn-secondary">Скачать архив на компьютер</button>
+				</div>
     </form>
 
+    <!--
     <form>
         В базу:
         <select name="source-to" class="form-select form-select-lg mb-3">
