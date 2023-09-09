@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django_sy_framework.custom_auth.authentication import TokenAuthentication
-from note.load_from_github import get_storage_service
+from note.adapters import get_storage_service
 from note.serializers_api import (
     NoteAddViewSerializer,
     NoteEditViewSerializer,

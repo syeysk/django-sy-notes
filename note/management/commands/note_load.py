@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from note.load_from_github import run_initiator
+from note.adapters import run_initiator
 
 
 class Command(BaseCommand):

@@ -7,7 +7,7 @@ from django.db import models
 from django.shortcuts import resolve_url
 
 from django_sy_framework.linker.models import Linker
-from note.load_from_github import get_service_names
+from note.adapters import get_service_names
 
 
 def prepare_to_search(value):

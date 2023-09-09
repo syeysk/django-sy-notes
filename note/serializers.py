@@ -44,7 +44,7 @@ class NoteStorageServiceSerializer(serializers.ModelSerializer):
         fields = ['service', 'description', 'is_default', 'source', 'credentials']
 
     def validate(self, data):
-        from note.load_from_github import service_name_to_class
+        from note.adapters import service_name_to_class
 
         uploader_class = service_name_to_class(data['service'])
         if hasattr(uploader_class, 'serializer'):

@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from django_sy_framework.linker.utils import link_instance_from_request
-from note.load_from_github import get_storage_service, get_service_names, run_initiator
+from note.adapters import get_storage_service, get_service_names, run_initiator
 from note.models import (
     Note,
     NoteStorageServiceModel,
@@ -303,7 +303,7 @@ class NoteStorageServiceListView(APIView):
 
     @staticmethod
     def post(request, pk=None):
-        """The view edit a storage or create a new storage if pk=0"""
+        """The view edits a storage or creates a new storage if pk=0"""
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -340,7 +340,7 @@ class NoteImportExportView(APIView):
     def get(request):
         command = request.GET.get('command')
         if command == 'download-archive':
-            # information aout all compress formats: https://docs.python.org/3/library/archiving.html
+            # information about all compress formats: https://docs.python.org/3/library/archiving.html
             source = request.GET['source-from']
             archive_file = BytesIO()
             with zipfile.ZipFile(archive_file, mode='w') as archive:
