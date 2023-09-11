@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/javascript/javascript.js' %}"></script>
-    <script src="{% static 'pages/code-mirror-component.js' %}"></script>
+    <script src="{% static 'base/code-mirror-component.js' %}"></script>
+    <script src="{% static 'base/map-field-component.js' %}"></script>
+    <script src="{% static 'base/map-serializer-component.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -50,124 +52,7 @@
 {% endblock %}
 
 {% block end_of_body %}
-
-    <script>
-			  MapFieldComponent = {
-			      props: ['modelValue', 'name', 'map'],
-			      emits: ['update:modelValue'],
-			      components: {CodeMirrorComponent},
-			      data() {
-			          return {prefixed_name: 'cred-' + this.name};
-			      },
-			      computed: {
-                value: {
-                    get() {
-											 let values = JSON.parse(this.modelValue);
-											 let value = values[this.name];
-                       if (this.map.type == 'object' && value != undefined && value != '') {
-                           value = JSON.stringify(value);
-                       }
-                       return value ? value.toString() : '';
-                    },
-                    set(value) {
-                       let values = JSON.parse(this.modelValue);
-                       if (this.map.type == 'object') {
-                           value = JSON.parse(value);
-                       }
-                       values[this.name] = value;
-                       this.$emit('update:modelValue', JSON.stringify(values));
-                    },
-                },
-            },
-			      template: `
-    			      <div>
-                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-if="map.type=='string' && map.enum">
-                    <div class="form-floating">
-                        <select v-model="value" v-bind="$attrs" class="form-select form-select-lg mb-3" :id="prefixed_name + '-field'" :name="prefixed_name">
-                            <option
-                                v-for="variant in map.enum"
-                                :value="variant"
-                                :selected="value != value"
-                            >[[ variant ]]</option>
-                        </select>
-                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
-                    </div>
-                </div>
-                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='string'">
-                    <div class="form-floating">
-                        <input v-model="value" v-bind="$attrs" class="form-control" type="text" :id="prefixed_name + '-field'" :pattern="map.pattern" :name="prefixed_name">
-                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
-                    </div>
-                </div>
-                <div class="mb-3 form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='integer'">
-                    <div class="form-floating">
-                        <input v-model="value" v-bind="$attrs" class="form-control" type="number" :id="prefixed_name + '-field'" :name="prefixed_name">
-                        <label :for="prefixed_name + '-field'" class="form-label">[[ map.description ]]</label>
-                    </div>
-                </div>
-                <div class="form-group" :id="prefixed_name + '-group'" v-else-if="map.type=='object'">
-                    <label :for="prefixed_name + '-field'">[[ map.description ]]</label>
-                    <code-mirror-component
-                        v-model="value"
-                        v-bind="$attrs"
-                        class="form-control"
-                        :id="prefixed_name + '-field'"
-                        mode="application/ld+json"
-                        :name="prefixed_name"
-                    ></code-mirror-component>
-                </div>
-            </div>
-			      `,
-			  }
-    </script>
-
-    <script>
-			  MapSerializerComponent = {
-			      props: ['serializerMap', 'modelValue', 'useDefaultValue'],
-			      emits: ['update:modelValue'],
-			      computed: {
-                value: {
-                    get() {
-                       /*
-                       if (this.mUseDefaultValue && this.serializerMap) {
-                           let defaultModelValue = {};
-                           for (let field_map of this.serializerMap) {
-                               if (field_map.map.default != undefined) {
-                                   defaultModelValue[field_map.name] = field_map.map.default;
-                               }
-                           }
-                           defaultModelValue = JSON.stringify(defaultModelValue);
-                           this.$emit('update:modelValue', defaultModelValue);
-                           this.mUseDefaultValue = false;
-                           return defaultModelValue;
-                       }
-                       */
-                       return this.modelValue;
-                    },
-                    set(value) {
-                       console.log(['set', value, this.modelValue]);
-                       this.$emit('update:modelValue', value);
-                    },
-                },
-            },
-			      data() {
-			          return {mUseDefaultValue: this.useDefaultValue};
-			      },
-			      components: {MapFieldComponent},
-			      template: `
-			          <map-field-component
-                    v-for="field in serializerMap"
-                    :key="field.name"
-                    :name="field.name"
-                    :map="field.map"
-                    v-model="value"
-                ></map-field-component>
-                <input type="hidden" v-model="value" v-bind="$attrs">
-			      `,
-			  }
-    </script>
-
-    <script>
+     <script>
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'credentials', 'isDefault', 'isNew'],
             data() {
