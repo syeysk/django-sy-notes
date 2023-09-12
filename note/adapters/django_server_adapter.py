@@ -68,7 +68,7 @@ class DjangoServerAdapter(BaseAdapter):
         for note in notes:
             note['url'] = self.get_note_url(note['title'])
 
-        return notes, {'num_pages': paginator.num_pages}
+        return notes, {'num_pages': paginator.num_pages, 'count': paginator.count}
 
     def get_note_url(self, title):
         return '{}/{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))

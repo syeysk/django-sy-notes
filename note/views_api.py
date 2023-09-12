@@ -83,7 +83,8 @@ class NoteSearchView(APIView):
                 'source': source,
                 'count_on_page': count_on_page,
                 'page_number': page_number,
-                'pages': meta['num_pages']
+                'pages': meta['num_pages'],
+                'count': meta['count']
             }
 
         return Response(status=status.HTTP_200_OK, data=response_data)

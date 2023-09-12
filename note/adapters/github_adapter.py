@@ -1,6 +1,9 @@
+import os
 import zipfile
 from pathlib import Path
 from urllib.parse import quote
+
+import requests
 
 from note.adapters.base_adapter import BaseAdapter
 from note.serializers_uploader import UploaderGithubSerializer
