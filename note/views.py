@@ -290,9 +290,7 @@ class NoteStorageServiceListView(APIView):
             service_serializer = getattr(subclass, 'serializer', None)
             if service_serializer:
                 service_map = auto_schema.map_serializer(service_serializer())
-                service_maps[subclass_name] = []
-                for field_name, field_map in service_map['properties'].items():
-                    service_maps[subclass_name].append({'name': field_name, 'map': field_map})
+                service_maps[subclass_name] = service_map['properties']
 
         context = {
             'storage_services': list(storages),
