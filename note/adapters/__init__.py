@@ -88,7 +88,7 @@ def get_service_names(add_class=False):
 
 
 def service_name_to_class(service_name):
-    return globals()['{}Adapter'.format(service_name)]
+    return globals()[f'{service_name}Adapter']
 
 
 @contextmanager
