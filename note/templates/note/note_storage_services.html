@@ -6,6 +6,7 @@
 {% block page_title %}Базы заметок{% endblock %}
 
 {% block start_of_head %}
+    {{ block.super }}
     <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
@@ -52,6 +53,7 @@
 {% endblock %}
 
 {% block end_of_body %}
+     {{ block.super }}
      <script>
         NoteStorageServiceComponent = {
             props:  ['service', 'source', 'description', 'credentials', 'isDefault', 'isNew'],
