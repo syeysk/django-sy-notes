@@ -27,10 +27,13 @@
   - Описание расширения mchchem: https://docs.mathjax.org/en/latest/input/tex/extensions/mhchem.html
   - Расширения, поддерживаемы Obsidian: https://docs.mathjax.org/en/latest/input/tex/extensions/index.html
   - ОписаниеJavascript-библиотеки MathJax для интерпретации LaTeX: https://docs.mathjax.org/en/latest/basic/mathjax.html
-  - Описание формата Markdown в Obsidian, который должен поддерживать и микросервис: https://publish.obsidian.md/help-ru/%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%B0/%D0%A4%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%B7%D0%B0%D0%BC%D0%B5%D1%82%D0%BE%D0%BA
+  - Описание формата Markdown в Obsidian, который должен поддерживать микросервис: https://publish.obsidian.md/help-ru/%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%B0/%D0%A4%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%B7%D0%B0%D0%BC%D0%B5%D1%82%D0%BE%D0%BA
 - [ ] ссылка на заметку в другом хранилище должна выглядеть так: `[Ссылка на файл](obsidian://open?vault=MainVault&file=MyNote.md)`
+  (в редакторе по нажатию кнопки "Добавить ссылку на заметку")
 - [ ] добавить возможность загружать картинки в хранилище
 - [ ] возможность делать форки хранилищ
+- [ ] указание seo-описания и ключевых слов в yaml-шапке заметки (отобразятся в тегах head->meta)
+- [ ] в редакторе заметки при нажатии Ctrl+S заметка должна сохраниться.
 
 ### Ключевые пункты - техническое
 

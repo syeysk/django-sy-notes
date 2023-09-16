@@ -144,5 +144,9 @@ DEFAULT_SOURCE_CODE = env('DEFAULT_SOURCE_CODE')
 MARKDOWNIFY = {
     'default': {
         'BLEACH': False,
+        'MARKDOWN_EXTENSIONS': [
+            'utils.md_extensions.obsidian_links:ObsidianLinksExtension',
+            'utils.md_extensions.wiki_links:WikiLinksExtension',
+        ],
     }
 }
