@@ -24,9 +24,9 @@ source_parametr = OpenApiParameter(
     default=settings.DEFAULT_SOURCE_CODE,
     location=OpenApiParameter.QUERY,
     examples=[
-        OpenApiExample('Firestore', value='firestore'),
-        OpenApiExample('Typesense', value='typesense'),
-        OpenApiExample('This django server', value='django_server'),
+        OpenApiExample('База по-умолчанию', value='default'),
+        OpenApiExample('База заметок проекта Платформы', value='.project2'),
+        OpenApiExample('База сообщества TVP', value='tvp-github'),
     ]
 )
 
@@ -53,6 +53,7 @@ class NoteSearchView(APIView):
             query_parametr,
         ],
         responses={200: NoteSearchResponseSerializer},
+        summary='Найти заметку',
     )
     def get(self, request, query):
         """Метод для поиска заметок"""
@@ -101,6 +102,7 @@ class NoteView(APIView):
         ],
         responses={200: NoteResponseSerializer, 404: None},
         tags=['Заметки'],
+        summary='Получить заметку',
     )
     def get(self, request, title):
         """Метод получения заметки"""
@@ -122,6 +124,7 @@ class NoteView(APIView):
         ],
         responses={200: NoteResponseSerializer},
         tags=['Заметки'],
+        summary='Создать заметку',
     )
     def post(self, request, title):
         """Метод создания новой заметки"""
@@ -149,6 +152,7 @@ class NoteView(APIView):
         ],
         responses={201: None, 404: None},
         tags=['Заметки'],
+        summary='Отредактировать заметку',
     )
     def put(self, request, title):
         """
@@ -183,6 +187,7 @@ class NoteView(APIView):
         ],
         responses={201: None, 404: None},
         tags=['Заметки'],
+        summary='Удалить заметку',
     )
     def delete(self, request, title):
         """Метод удаления заметки"""
