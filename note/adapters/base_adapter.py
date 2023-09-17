@@ -1,5 +1,3 @@
-from urllib.parse import quote
-
 from django.conf import settings
 from django.shortcuts import resolve_url
 
@@ -15,7 +13,7 @@ class BaseAdapter:
 
     def get_note_url(self, title):
         """Return a note URL by `title`"""
-        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=title))
 
     def get(self, title: str) -> dict | None:
         """Return a note from a storage by `title`.
