@@ -21,8 +21,8 @@ class GithubAdapter(BaseAdapter):
         self.branch = branch
         self.directory = directory
 
-    def get_note_url(self, title):
-        return f'https://github.com/{self.owner}/{self.repo}/blob/main{self.directory}/{quote(title)}.md'
+    # def get_note_url(self, title):
+    #     return f'https://github.com/{self.owner}/{self.repo}/blob/main{self.directory}/{quote(title)}.md'
 
     def get(self, title):
         response = requests.get(self.URL_NOTE.format(self.owner, self.repo, self.branch, self.directory, quote(title)))
