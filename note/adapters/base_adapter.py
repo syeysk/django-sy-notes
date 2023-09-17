@@ -1,3 +1,9 @@
+from urllib.parse import quote
+
+from django.conf import settings
+from django.shortcuts import resolve_url
+
+
 class BaseAdapter:
 
     def close(self):
@@ -6,6 +12,9 @@ class BaseAdapter:
     @staticmethod
     def total_count_objects_to_count_pages(count_objects, count_on_page):
         return (count_objects // count_on_page) + 1 if count_objects % count_on_page > 0 else 0
+
+    def get_note_url(self, title):
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))
 
     def get(self, title: str) -> dict | None:
         """Return a note from a storage by `title`.

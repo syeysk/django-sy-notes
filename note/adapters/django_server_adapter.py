@@ -1,8 +1,4 @@
-from urllib.parse import quote
-
-from django.conf import settings
 from django.db.models import Q
-from django.shortcuts import resolve_url
 
 from note.adapters.base_adapter import BaseAdapter
 
@@ -69,9 +65,6 @@ class DjangoServerAdapter(BaseAdapter):
             note['url'] = self.get_note_url(note['title'])
 
         return notes, {'num_pages': paginator.num_pages, 'count': paginator.count}
-
-    def get_note_url(self, title):
-        return '{}/{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))
 
     def get(self, title):
         notes = self.queryset.filter(title=title)
