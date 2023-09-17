@@ -28,7 +28,7 @@ class GithubAdapter(BaseAdapter):
         response = requests.get(self.URL_NOTE.format(self.owner, self.repo, self.branch, self.directory, quote(title)))
         return None if response.status_code == 404 else {'title': title, 'content': response.text}
 
-    def get_list(self, page_number, count_on_page):
+    def load_archive(self):
         archive_dir = Path(__file__).resolve().parent.parent / 'cache_archives'
         archive_path = archive_dir / '{}.zip'.format('__'.join((self.owner, self.repo, self.branch)))
         if not os.path.exists(archive_dir):
@@ -39,6 +39,10 @@ class GithubAdapter(BaseAdapter):
             with open(archive_path, 'wb') as archive_file:
                 archive_file.write(response.content)
 
+        return archive_path
+
+    def get_list(self, page_number, count_on_page):
+        archive_path = self.load_archive()
         notes = []
         path_to_notes = '{}-{}{}'.format(self.repo, self.branch, self.directory)
         total_count = 0
@@ -62,3 +66,54 @@ class GithubAdapter(BaseAdapter):
                     notes.append({'title': file_name, 'content': file_content})
 
         return notes, {'num_pages': self.total_count_objects_to_count_pages(total_count, count_on_page)}
+
+    def search(
+        self,
+        operator,
+        count_on_page,
+        page_number,
+        fields,
+        file_name=None,
+        file_content=None,
+    ):
+        from django.core.paginator import Paginator
+        from note.models import prepare_to_search
+        archive_path = self.load_archive()
+        filter = {}
+        notes = []
+        path_to_notes = '{}-{}{}'.format(self.repo, self.branch, self.directory)
+        with zipfile.ZipFile(archive_path) as archive_object:
+            for member_info in archive_object.infolist():
+                filename = member_info.filename
+                if not filename.startswith(path_to_notes) or not filename.endswith('.md') or member_info.is_dir():
+                    continue
+
+                with archive_object.open(member_info) as member_file:
+                    title, _ = os.path.splitext(os.path.basename(filename))
+                    content = str(member_file.read(), 'utf-8')
+
+                    if file_content:
+                        if not prepare_to_search(file_content) in prepare_to_search(content):
+                            continue
+
+                    if file_name:
+                        if not prepare_to_search(file_name) in prepare_to_search(title):
+                            continue
+
+                    note = {}
+                    if 'title' in fields:
+                        note['title'] = title
+
+                    if 'content' in fields:
+                        note['content'] = content
+
+                    notes.append(note)
+
+        paginator = Paginator(notes, count_on_page)
+        page = paginator.page(page_number)
+
+        notes = list(page.object_list)
+        for note in notes:
+            note['url'] = self.get_note_url(note['title'])
+
+        return notes, {'num_pages': paginator.num_pages, 'count': paginator.count}

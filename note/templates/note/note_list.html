@@ -49,8 +49,8 @@
 
 				<form>
    					<div class="input-group mb-3">
-	    					<input type="text" name="search_string" placeholder="Поиск по заметками" value="{% if 's' in request.GET %}{{request.GET.s}}{% endif %}" class="form-control">
-							  <button class="btn btn-outline-secondary" onclick="set_search([['s', this.form.search_string.value], ['p', 1]])">Найти</button>
+	    					<input type="text" name="s" placeholder="Поиск по заметками" value="{% if 's' in request.GET %}{{request.GET.s}}{% endif %}" class="form-control">
+							  <button class="btn btn-outline-secondary" onclick="set_search([['s', this.form.s.value], ['p', 1]])">Найти</button>
 				  	</div>
 				</form>
 		</div>
