@@ -14,6 +14,7 @@ class BaseAdapter:
         return (count_objects // count_on_page) + 1 if count_objects % count_on_page > 0 else 0
 
     def get_note_url(self, title):
+        """Return a note URL by `title`"""
         return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=quote(title)))
 
     def get(self, title: str) -> dict | None:
@@ -43,8 +44,4 @@ class BaseAdapter:
 
     def get_list(self, page_number: int, count_on_page: int) -> tuple[dict, dict]:
         """Return a list of notes from a storage by """
-        raise NotImplementedError()
-
-    def get_note_url(self, title: str):
-        """Return a note URL by `title`"""
         raise NotImplementedError()
