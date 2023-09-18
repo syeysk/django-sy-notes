@@ -78,8 +78,9 @@ class GithubAdapter(BaseAdapter):
     ):
         from django.core.paginator import Paginator
         from note.models import prepare_to_search
+        file_content = prepare_to_search(file_content)
+        file_name = prepare_to_search(file_name)
         archive_path = self.load_archive()
-        filter = {}
         notes = []
         path_to_notes = '{}-{}{}'.format(self.repo, self.branch, self.directory)
         with zipfile.ZipFile(archive_path) as archive_object:
@@ -92,13 +93,12 @@ class GithubAdapter(BaseAdapter):
                     title, _ = os.path.splitext(os.path.basename(filename))
                     content = str(member_file.read(), 'utf-8')
 
-                    if file_content:
-                        if not prepare_to_search(file_content) in prepare_to_search(content):
-                            continue
-
-                    if file_name:
-                        if not prepare_to_search(file_name) in prepare_to_search(title):
-                            continue
+                    founds = (
+                        file_content in prepare_to_search(content) if file_content else True,
+                        file_name in prepare_to_search(title) if file_name else True,
+                    )
+                    if not all(founds) if operator == 'and' else any(founds):
+                        continue
 
                     note = {}
                     if 'title' in fields:
