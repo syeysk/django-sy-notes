@@ -97,7 +97,7 @@ class GithubAdapter(BaseAdapter):
                         file_content in prepare_to_search(content) if file_content else True,
                         file_name in prepare_to_search(title) if file_name else True,
                     )
-                    if not all(founds) if operator == 'and' else any(founds):
+                    if not (all(founds) if operator == 'and' else any(founds)):
                         continue
 
                     note = {}
