@@ -15,6 +15,12 @@ def prepare_to_search(value):
 
 
 class Note(models.Model):
+    storage = models.ForeignKey(
+        'note.NoteStorageServiceModel',
+        null=False,
+        on_delete=models.CASCADE,
+        related_name='notes',
+    )
     storage_uuid = models.UUIDField(null=False, blank=False)
     title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
     content = models.TextField(verbose_name='Текст', null=False)
@@ -47,10 +53,15 @@ class Note(models.Model):
         self.search_title = prepare_to_search(self.title)
 
 
+class ImageNote(models.Model):
+    note = models.ForeignKey(Note, null=False, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='note')
+
+
 class NoteStorageServiceModel(models.Model):
     CHOICES_SERVICE = get_service_names()
     service = models.CharField(verbose_name='Внешний сервис базы', max_length=30, choices=CHOICES_SERVICE, blank=False)
-    credentials = models.JSONField(verbose_name='Данные для полключения', default=dict)
+    credentials = models.JSONField(verbose_name='Данные для подключения', default=dict)
     description = models.CharField(verbose_name='Комментарий', max_length=100, default='')
     is_default = models.BooleanField(
         verbose_name='Является ли база по-умолчанию?',

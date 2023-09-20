@@ -21,6 +21,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'static'
 SITE_URL = env('SITE_URL')
 INTERNAL_IPS = ['127.0.0.1']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.parent / 'media'
 
 API_SALT = env('API_SALT')
 API_SECRET_KEY = env('API_SECRET_KEY')
@@ -147,6 +149,7 @@ MARKDOWNIFY = {
         'MARKDOWN_EXTENSIONS': [
             'utils.md_extensions.obsidian_links:ObsidianLinksExtension',
             'utils.md_extensions.wiki_links:WikiLinksExtension',
+            'utils.md_extensions.internal_images:InternalImagesExtension',
         ],
     }
 }

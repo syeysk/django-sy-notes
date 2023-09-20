@@ -7,6 +7,7 @@ from urllib.parse import unquote
 import yaml
 import requests
 from django.conf import settings
+from django.core.files.images import ImageFile
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.views import View
@@ -22,6 +23,7 @@ from rest_framework import status
 from django_sy_framework.linker.utils import link_instance_from_request
 from note.adapters import get_storage_service, get_service_names, run_initiator
 from note.models import (
+    ImageNote,
     Note,
     NoteStorageServiceModel,
     prepare_to_search,
@@ -182,7 +184,8 @@ class NoteEditorView(APIView):
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        with get_storage_service(data['source']) as (uploader, _):
+        source = data['source']
+        with get_storage_service(source) as (uploader, _):
             if not uploader.get(title=title):
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -191,6 +194,12 @@ class NoteEditorView(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
             updated_fields = uploader.edit(title, new_title, new_content)
+            note = Note.objects.filter(storage__source=source, title=title).first()
+            if note:
+                for uploaded_image in request.FILES.getlist('images'):
+                    if not os.path.exists(f'{settings.MEDIA_ROOT}/note/{uploaded_image.name}'):
+                        image = ImageNote(note=note, image=ImageFile(uploaded_image, uploaded_image.name))
+                        image.save()
 
         content_yaml, content_md = separate_yaml(new_content)
         return Response(

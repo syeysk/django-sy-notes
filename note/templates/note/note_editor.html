@@ -48,11 +48,11 @@
             props: ['title', 'content', 'errorMessage', 'successMessage'],
             emits: ['save', 'cancel'],
             data() {
-                return {mTitle: this.title, mContent: this.content}
+                return {mTitle: this.title, mContent: this.content, images: new Map()}
             },
             components: {CodeMirrorComponent},
             template: `
-                <form>
+                <form @keydown="save_by_button">
                     <input name="source" type="hidden" value="{{ source }}">
                     <div class="form-group" id="title-group">
                         <div class="form-floating">
@@ -61,7 +61,7 @@
                         </div>
                     </div>
                     <div class="form-group" id="content-group">
-                        <code-mirror-component v-model="mContent" name="content" mode="markdown" id="content-field"></code-mirror-component>
+                       <code-mirror-component :on_code_mirror_ready="on_code_mirror_ready" v-model="mContent" name="content" mode="markdown" id="content-field" class="form-control"></code-mirror-component>
                     </div>
                     <br>
                     <div :class="{'d-none': !errorMessage}">
@@ -79,11 +79,62 @@
                 </form>
             `,
             methods: {
+                save_by_button(event) {
+                    if (event.code == 'KeyS' && event.ctrlKey) {
+                        this.$emit('save', event, this.mTitle, this.mContent, this.images, false);
+                        event.preventDefault();
+                    }
+                },
                 save(event) {
-                    this.$emit('save', event, this.mTitle, this.mContent);
+                    this.$emit('save', event, this.mTitle, this.mContent, this.images, true);
                 },
                 cancel(event) {
                     this.$emit('cancel', event, this, this.mTitle, this.mContent);
+                },
+                on_code_mirror_ready(cm) {
+                function buf2hex(buffer) { // buffer is an ArrayBuffer
+  return [...new Uint8Array(buffer)]
+      .map(x => x.toString(16).padStart(2, '0'))
+      .join('');
+}
+
+                    self = this;
+                    cm.on(
+												'paste',
+												function(doc, event) {
+												    allowed_types = new Set(['image/jpeg', 'image/png', 'image/svg+xml']);
+														// https://stackoverflow.com/questions/6333814/how-does-the-paste-image-from-clipboard-functionality-work-in-gmail-and-google-c
+														var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+														for (var index in items) {
+																var item = items[index];
+																if (item.kind == 'file') {
+																		let file = item.getAsFile();
+                                    if (!allowed_types.has(file.type)) {
+                                        console.log('not allowed type: ', file.type);
+                                        continue;
+    																}
+                                    if (file.size / 1024 > 1024) {  // allow 1024 KB
+                                        console.log('not allowed size: ', file.size / 1024);
+                                        continue;
+    																}
+																		var reader = new FileReader();
+																		let cursor = cm.getCursor();
+																		reader.onload = function (event) {
+    																		let hash = crypto.subtle.digest('sha-256', reader.result);
+    																		hash.then(
+    																		    function(result){
+        																		    let hexed_hash = buf2hex(result) + '.' + file.type.split('/')[1];
+    																		        self.images.set(hexed_hash, file);
+    																		        cm.replaceRange('!['+file.name+']('+hexed_hash+')', cursor, cursor);
+    																		    }
+    																		);
+																				event.preventDefault();
+																		}
+																		reader.readAsArrayBuffer(file);
+																}
+														}
+												},
+										);
                 },
             },
         }
@@ -137,19 +188,29 @@
                     editor.mContent = this.content;
                     this.view();
                 },
-                save(event, title, content) {
+                save(event, title, content, images, toggle_mode) {
                     let self = this;
                     this.successMessage = 'Сохраняем...';
                     let form = event.target.form;
                     title = title.trim();
+                    let form_data = new FormData();
+                    form_data.append('title', title);
+                    form_data.append('content', content);
+                    form_data.append('source', form.source.value);
+                    for (hashed_name of images.keys()) {
+                        let image = images.get(hashed_name);
+                        form_data.append('images', image, hashed_name);
+                    }
                     if (this.is_new) {
                         $.ajax({
                             url: URL_SAVE_NOTE,
                             headers: {
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
-                            dataType: 'json',
-                            data: {title: title, content: content, source: form.source.value},
+                            contentType: false,
+                            dataType: false,
+                            processData: false,
+                            data: form_data,
                             success: function(result) {
                                 clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
@@ -162,7 +223,10 @@
                                 self.title = title;
                                 self.content = content;
                                 self.content_html = result.content_html;
-                                self.view();
+                                images.clear();
+                                if (toggle_mode) {
+                                    self.view();
+                                }
                                 self.is_new = false;
                             },
                             statusCode: {
@@ -183,8 +247,10 @@
                             headers: {
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
-                            dataType: 'json',
-                            data: {title: title, content: content, source: form.source.value},
+                            contentType: false,
+                            dataType: false,
+                            processData: false,
+                            data: form_data,
                             success: function(result) {
                                 clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
@@ -197,7 +263,10 @@
                                 self.title = title;
                                 self.content = content;
                                 self.content_html = result.content_html;
-                                self.view();
+                                images.clear();
+                                if (toggle_mode) {
+                                    self.view();
+                                }
                             },
                             statusCode: {
                                 500: function(xhr) {

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 
@@ -9,3 +10,7 @@ urlpatterns = [
     path('auth/', include('django_sy_framework.custom_auth.urls')),
     path('', include('django_sy_framework.base.urls')),
 ]
+
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
