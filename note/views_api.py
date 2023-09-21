@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django_sy_framework.custom_auth.authentication import TokenAuthentication
+from django_sy_framework.custom_auth.permissions import CheckIsUsernNotAnonymousUser
 from note.adapters import get_storage_service
 from note.serializers_api import (
     NoteAddViewSerializer,
@@ -94,6 +95,7 @@ class NoteSearchView(APIView):
 class NoteView(APIView):
     """Класс методов для работы с заметками"""
     authentication_classes = [TokenAuthentication]
+    permission_classes = [CheckIsUsernNotAnonymousUser]
 
     @extend_schema(
         parameters=[
