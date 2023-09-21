@@ -93,7 +93,7 @@ class NoteSearchView(APIView):
 
 class NoteView(APIView):
     """Класс методов для работы с заметками"""
-    authenticate_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
 
     @extend_schema(
         parameters=[
