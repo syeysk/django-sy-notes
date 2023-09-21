@@ -1,6 +1,7 @@
 from urllib.parse import unquote
 
 from django.conf import settings
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from rest_framework import status
 from rest_framework.response import Response
@@ -41,6 +42,19 @@ query_parametr = OpenApiParameter(
         OpenApiExample('пример', value='page name')
     ]
 )
+
+
+class Auth(OpenApiAuthenticationExtension):
+    name = 'Token authentication'
+    target_class = TokenAuthentication
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'http',
+            'name': 'AUTHORIZATION',
+            'in': 'header',
+            'scheme': 'Bearer',
+        }
 
 
 class NoteSearchView(APIView):
