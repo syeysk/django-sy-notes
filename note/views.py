@@ -22,6 +22,7 @@ from rest_framework import status
 
 from django_sy_framework.linker.utils import link_instance_from_request
 from note.adapters import get_storage_service, get_service_names, run_initiator
+from utils.constants import BEFORE_CREATE, BEFORE_EDIT, CREATED, EDITED, WEB
 from note.models import (
     ImageNote,
     Note,
@@ -33,6 +34,7 @@ from note.serializers import (
     NoteEditViewSerializer,
     NoteStorageServiceSerializer, ERROR_NAME_MESSAGE,
 )
+from utils.hooks import note_hook
 
 
 def separate_yaml(content):
@@ -59,7 +61,7 @@ def separate_yaml(content):
 )
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
-def note_hook(request):  # TODO: метод хука планируется перенести в адаптер базы. Сейчас хук не работает
+def note_hook_old(request):  # TODO: метод хука планируется перенести в адаптер базы. Сейчас хук не работает
     """Хук для обновления заметок на сервере из принятого Pull Request'а на Github"""
     data = {'files': {}}
     action = request._request.headers.get('X-Github-Event')
@@ -193,7 +195,9 @@ class NoteEditorView(APIView):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
+            note_hook(BEFORE_EDIT, WEB, (title, new_title, new_content), uploader, request)
             updated_fields = uploader.edit(title, new_title, new_content)
+            note_hook(EDITED, WEB, (title, new_title, new_content), uploader, request)
             note = Note.objects.filter(storage__source=source, title=title).first()
             if note:
                 for uploaded_image in request.FILES.getlist('images'):
@@ -226,7 +230,9 @@ class NoteEditorView(APIView):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
+            note_hook(BEFORE_CREATE, WEB, (title, content), uploader, request)
             uploader.add(title, content)
+            note_hook(CREATED, WEB, (title, content), uploader, request)
 
             link_to = request.GET.get('link_to') or (source[1:] if source.startswith('.project-') else None)
             if link_to:

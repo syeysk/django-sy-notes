@@ -6,6 +6,6 @@ passenger_wsgi.py
 *.db
 server/tmp/restart.txt
 .env
-debug.log
+*.log
 .idea
 cache_archives/
