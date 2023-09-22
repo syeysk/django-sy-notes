@@ -28,10 +28,12 @@ class Note(models.Model):
     search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=255, null=False, db_index=True)
     linker = GenericRelation(Linker, related_query_name='note')
 
+    def __str__(self):
+        return self.title
+
     @property
     def url(self):
-        storage = NoteStorageServiceModel.objects.filter(uuid=self.storage_uuid).first()
-        return '{}{}?source={}'.format(settings.SITE_URL, resolve_url('note_editor', self.title), storage.source)
+        return '{}{}?source={}'.format(settings.SITE_URL, resolve_url('note_editor', self.title), self.storage.source)
 
     @property
     def url_new(self):
@@ -80,6 +82,9 @@ class NoteStorageServiceModel(models.Model):
         help_text='Используется для указания базы при поиске, редактировании и отображении заметок',
     )
     uuid = models.UUIDField(null=False, blank=False, unique=True, default=uuid.uuid4)
+
+    def __str__(self):
+        return self.source
 
     class Meta:
         verbose_name = 'База заметок'

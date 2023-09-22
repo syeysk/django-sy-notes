@@ -9,7 +9,8 @@ class FirestoreAdapter(BaseAdapter):
     serializer = UploaderFirestoreSerializer
     MAX_PORTION_SIZE = 500
 
-    def __init__(self, _, certificate):
+    def __init__(self, storage, certificate):
+        self.storage = storage
         cred = credentials.Certificate(certificate)
         self.app = initialize_app(cred)
         self.db = firestore.client()

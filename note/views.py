@@ -236,7 +236,7 @@ class NoteEditorView(APIView):
 
             link_to = request.GET.get('link_to') or (source[1:] if source.startswith('.project-') else None)
             if link_to:
-                instance = Note.objects.filter(title=title, storage_uuid=uploader.storage_uuid).first()
+                instance = Note.objects.filter(title=title, storage=uploader.storage).first()
                 link_instance_from_request(instance, link_to)
 
         content_yaml, content_md = separate_yaml(content)

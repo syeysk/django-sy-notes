@@ -8,21 +8,17 @@ class DjangoServerAdapter(BaseAdapter):
     MAX_PORTION_SIZE = 400
     portion = []
 
-    def __init__(self, storage_uuid):
+    def __init__(self, storage):
         from note.models import Note
-        self.storage_uuid = storage_uuid
-        self.queryset = Note.objects.filter(storage_uuid=storage_uuid)
+        self.storage = storage
+        self.queryset = Note.objects.filter(storage=storage)
 
     def clear(self):
         self.queryset.delete()
 
     def add_to_portion(self, file_name, file_content):
         from note.models import Note
-        fields = Note(
-            title=file_name,
-            content=file_content,
-            storage_uuid=self.storage_uuid,
-        )
+        fields = Note(title=file_name, content=file_content, storage=self.storage)
         fields.fetch_search_fields()
         self.portion.append(fields)
 
@@ -72,9 +68,8 @@ class DjangoServerAdapter(BaseAdapter):
         return {'title': note.title, 'content': note.content} if note else None
 
     def add(self, title, content):
-        from note.models import Note, NoteStorageServiceModel
-        storage = NoteStorageServiceModel.objects.get(uuid=self.storage_uuid)
-        note = Note(title=title, content=content, storage_uuid=self.storage_uuid, storage=storage)
+        from note.models import Note
+        note = Note(title=title, content=content, storage_uuid=self.storage.uuid, storage=self.storage)
         note.fetch_search_fields()
         note.save()
         return {'title': note.title, 'content': note.content}

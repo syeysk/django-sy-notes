@@ -3,13 +3,13 @@
 {% load static %}
 
 {% block title %}{% endblock %}
-{% block page_title %} Заметка | {{ note.title }}{% endblock %}
+{% block page_title %} Заметка | {% if note %}{{ note.title }}{% else %}Новая заметка{% endif %}{% endblock %}
 
 {% block start_of_head %}
     {{ block.super }}
     <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
-    <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">
+    <!--<link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">-->
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/markdown/markdown.js' %}"></script>
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/python/python.js' %}"></script>
     <script src="{% static 'base/code-mirror-component.js' %}"></script>
@@ -165,6 +165,7 @@
             `,
             components: {NoteViewerComponent, NoteEditorComponent},
             data() {
+                let note_object = JSON.parse(document.getElementById('note_json').textContent);
                 is_new = !Boolean(note_object);
                 return {
                     title: is_new ? '' : note_object.title,
@@ -291,7 +292,6 @@
     </script>
 
     <script>
-        var note_object = JSON.parse(document.getElementById('note_json').textContent);
         const { createApp } = Vue;
 
         var app_note = createApp(NoteComponent);

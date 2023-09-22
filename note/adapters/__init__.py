@@ -112,10 +112,9 @@ def get_storage_service(source=None, user=None):
     service_name = storage.service
     service_credentials = storage.credentials
     source = storage.source
-    storage_uuid = storage.uuid
 
     uploader_class = service_name_to_class(service_name)
-    uploader = uploader_class(storage_uuid, **service_credentials)
+    uploader = uploader_class(storage, **service_credentials)
     try:
         yield uploader, source
     finally:
