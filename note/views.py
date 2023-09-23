@@ -20,8 +20,8 @@ from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
+from django_sy_framework.utils.exceptions import Http401
 from note.adapters import get_storage_service, get_service_names, run_initiator
-from utils.constants import BEFORE_CREATE, BEFORE_EDIT, CREATED, EDITED, WEB
 from note.models import (
     ImageNote,
     Note,
@@ -33,6 +33,7 @@ from note.serializers import (
     NoteEditViewSerializer,
     NoteStorageServiceSerializer, ERROR_NAME_MESSAGE,
 )
+from utils.constants import BEFORE_CREATE, BEFORE_EDIT, CREATED, EDITED, WEB
 from utils.hooks import note_hook
 
 
@@ -128,13 +129,13 @@ def note_hook_old(request):  # TODO: метод хука планируется 
         return Response(status=status.HTTP_200_OK, data=data)
 
 
-class NoteEditorView(APIView):
+class NoteView(View):
     @staticmethod
     def get(request, quoted_title=None):
         source = request.GET.get('source') or request.COOKIES.get('source')
         if quoted_title is None:
             if not request.user.is_authenticated:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
+                return Http401('Для создания заметки требуется авторизация')
 
             link_to = request.GET.get('link_to')
             if link_to:
@@ -163,6 +164,9 @@ class NoteEditorView(APIView):
             'source': source,
         }
         return render(request, 'note/note_editor.html', context)
+
+
+class NoteEditView(APIView):
 
     @staticmethod
     def put(request, quoted_title):
