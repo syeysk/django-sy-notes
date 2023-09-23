@@ -68,17 +68,17 @@
 
     <p>
 		  	{% if current_page > 1 %}
-    		  	<a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p=1">1</a>
+    		  	<a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p=1">1</a>
 		  	{% endif %}
 			  {% if current_page > 2 %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ current_page|add:-1 }}"> << </a>
+    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:-1 }}"> << </a>
 		  	{% endif %}
 			  <span>{{ current_page }}</span>
 			  {% if current_page < last_page|add:-1 %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ current_page|add:1 }}"> >> </a>
+    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:1 }}"> >> </a>
 		  	{% endif %}
 			  {% if current_page < last_page %}
-    			  <a href="{% url 'note_list' %}?{% if search %}s={% if 's' in request.GET %}{{request.GET.s|urlencode}}{% endif %}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
+    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
 		  	{% endif %}
 		</p>
 
