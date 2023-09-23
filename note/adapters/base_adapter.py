@@ -21,7 +21,7 @@ class BaseAdapter:
         :param title: title of a note
         :return: `dict` like `{'title': '', 'content': ''}` if a note exists, else - `None`
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Getting notes is not supported by this adapter')
 
     def add(self, title: str, content: str) -> dict:
         """Create a note into a storage.
@@ -30,16 +30,16 @@ class BaseAdapter:
         :param content: content of a note
         :return: `dict` like `{'title': '', 'content': ''}`
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Adding notes is not supported by this adapter')
 
     def edit(self, title: str, new_title: str = None, new_content: str = None):
         """Change an existing note. Minimum one of `new_title`, `new_content` must be not None"""
-        raise NotImplementedError()
+        raise NotImplementedError('Editing notes is not supported by this adapter')
 
     def delete(self, title: str):
         """Delete a note from a storage by `title`"""
-        raise NotImplementedError()
+        raise NotImplementedError('Deleting notes is not supported by this adapter')
 
     def get_list(self, page_number: int, count_on_page: int) -> tuple[dict, dict]:
         """Return a list of notes from a storage by """
-        raise NotImplementedError()
+        raise NotImplementedError('Getting notes\' list is not supported by this adapter')
