@@ -21,7 +21,7 @@ class Note(models.Model):
         on_delete=models.CASCADE,
         related_name='notes',
     )
-    storage_uuid = models.UUIDField(null=False, blank=False)
+    storage_uuid = models.UUIDField(null=True, blank=True)
     title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
     content = models.TextField(verbose_name='Текст', null=False)
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
@@ -44,10 +44,10 @@ class Note(models.Model):
         verbose_name = 'Заметка'
         verbose_name_plural = 'Заметки'
         constraints = [
-            models.UniqueConstraint(fields=('storage_uuid', 'title'), name='unique_note')
+            models.UniqueConstraint(fields=('storage', 'title'), name='unique_note_storage_title')
         ]
         indexes = [
-            models.Index(fields=('storage_uuid',), name='index_storage_uuid_note'),
+            models.Index(fields=('storage',), name='index_note_storage'),
         ]
 
     def fetch_search_fields(self):
