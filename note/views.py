@@ -167,9 +167,16 @@ class NoteView(View):
 
 
 class NoteEditView(APIView):
-
     @staticmethod
-    def put(request, quoted_title):
+    def save_images(source, title, request):
+        note = Note.objects.filter(storage__source=source, title=title).first()
+        if note:
+            for uploaded_image in request.FILES.getlist('images'):
+                if not os.path.exists(f'{settings.MEDIA_ROOT}/note/{uploaded_image.name}'):
+                    image = ImageNote(note=note, image=ImageFile(uploaded_image, uploaded_image.name))
+                    image.save()
+
+    def put(self, request, quoted_title):
         """
         Метод редактирования существующей заметки.
 
@@ -201,12 +208,7 @@ class NoteEditView(APIView):
             note_hook(BEFORE_EDIT, WEB, (source, title, new_title, new_content), uploader, request)
             updated_fields = uploader.edit(title, new_title, new_content)
             note_hook(EDITED, WEB, (title, new_title, new_content), uploader, request)
-            note = Note.objects.filter(storage__source=source, title=title).first()
-            if note:
-                for uploaded_image in request.FILES.getlist('images'):
-                    if not os.path.exists(f'{settings.MEDIA_ROOT}/note/{uploaded_image.name}'):
-                        image = ImageNote(note=note, image=ImageFile(uploaded_image, uploaded_image.name))
-                        image.save()
+            self.save_images(source, title, request)
 
         content_yaml, content_md = separate_yaml(new_content)
         return Response(
@@ -214,8 +216,7 @@ class NoteEditView(APIView):
             data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
         )
 
-    @staticmethod
-    def post(request):
+    def post(self, request):
         """Метод создания новой заметки"""
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -236,6 +237,7 @@ class NoteEditView(APIView):
             note_hook(BEFORE_CREATE, WEB, (source, title, content), uploader, request)
             uploader.add(title, content)
             note_hook(CREATED, WEB, (source, title, content), uploader, request)
+            self.save_images(source, title, request)
 
         content_yaml, content_md = separate_yaml(content)
         return Response(
