@@ -1,6 +1,7 @@
 import datetime
 import zipfile
 import os
+from dataclasses import dataclass
 from io import BytesIO
 from urllib.parse import unquote
 
@@ -33,7 +34,17 @@ from note.serializers import (
     NoteEditViewSerializer,
     NoteStorageServiceSerializer, ERROR_NAME_MESSAGE,
 )
-from utils.constants import BEFORE_CREATE, BEFORE_EDIT, CREATED, EDITED, WEB
+from utils.constants import (
+    BEFORE_CREATE,
+    BEFORE_CREATE_GETTING_ADAPTER,
+    BEFORE_OPEN_CREATE_PAGE,
+    BEFORE_OPEN_VIEW_PAGE,
+    BEFORE_UPDATE,
+    BEFORE_UPDATE_GETTING_ADAPTER,
+    CREATED,
+    UPDATED,
+    WEB,
+)
 from utils.hooks import note_hook
 
 
@@ -54,6 +65,39 @@ def separate_yaml(content):
         content = content[yaml_length + 4:].lstrip()
 
     return data_yaml, content
+
+
+@dataclass
+class CreatedNote:
+    source: str
+    title: str
+    content: str
+    request: 'django.http.HttpRequest' = None
+    adapter: 'note.adapters.base_adapter.BaseAdapter' = None
+
+
+@dataclass
+class UpdatedNote:
+    source: str
+    title: str
+    new_title: str
+    new_content: str
+    request: 'django.http.HttpRequest' = None
+    adapter: 'note.adapters.base_adapter.BaseAdapter' = None
+
+
+@dataclass
+class CreatePageNote:
+    source: str
+    request: 'django.http.HttpRequest' = None
+
+
+@dataclass
+class ViewPageNote:
+    source: str
+    title: str
+    request: 'django.http.HttpRequest' = None
+    has_access_to_edit: bool = True
 
 
 @extend_schema(
@@ -135,21 +179,11 @@ class NoteView(View):
         source = request.GET.get('source') or request.COOKIES.get('source')
         if quoted_title is None:
             if not request.user.is_authenticated:
-                return Http401('Для создания заметки требуется авторизация')
+                raise Http401('Для создания заметки требуется авторизация')
 
-            link_to = request.GET.get('link_to')
-            if link_to:
-                source = f'.{link_to}'
-                if not NoteStorageServiceModel.objects.filter(source=source).first():
-                    storage = NoteStorageServiceModel(
-                        service='DjangoServer',
-                        description=f'База знаний для внешнего "{link_to}"',
-                        user=request.user,
-                        source=source,
-                    )
-                    storage.save()
-
-            context = {'note': None, 'source': source}
+            meta = CreatePageNote(source, request)
+            note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
+            context = {'note': None, 'source': meta.source}
             return render(request, 'note/note_editor.html', context)
 
         with get_storage_service(source) as (uploader, source):
@@ -159,9 +193,12 @@ class NoteView(View):
             raise Http404('Заметка не найдена')
 
         _, content_md = separate_yaml(note['content'])
+        meta = ViewPageNote(source, note['title'], request)
+        note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
         context = {
             'note': {'title': note['title'], 'content': note['content'], 'content_html': markdownify(content_md)},
-            'source': source,
+            'source': meta.source,
+            'has_access_to_edit': meta.has_access_to_edit,
         }
         return render(request, 'note/note_editor.html', context)
 
@@ -180,7 +217,7 @@ class NoteEditView(APIView):
         """
         Метод редактирования существующей заметки.
 
-        Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
+        Обязателен как минимум один из параметров в теле: `content` или `title`.
         """
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -190,27 +227,27 @@ class NoteEditView(APIView):
         data = serializer.validated_data
 
         title = unquote(quoted_title)
-        new_title = data.get('title')
-        new_content = data.get('content')
-
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        source = data['source']
-        with get_storage_service(source) as (uploader, _):
+        meta = UpdatedNote(data['source'], title, data.get('title'), data.get('content'), request, None)
+        note_hook(BEFORE_UPDATE_GETTING_ADAPTER, WEB, meta)
+        with get_storage_service(meta.source) as (uploader, source):
+            meta.adapter = uploader
+            meta.source = source
             if not uploader.get(title=title):
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
-            if new_title and new_title != title and uploader.get(title=new_title):
+            if meta.new_title and meta.new_title != meta.title and uploader.get(title=meta.new_title):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
-            note_hook(BEFORE_EDIT, WEB, (source, title, new_title, new_content), uploader, request)
-            updated_fields = uploader.edit(title, new_title, new_content)
-            note_hook(EDITED, WEB, (title, new_title, new_content), uploader, request)
-            self.save_images(source, title, request)
+            note_hook(BEFORE_UPDATE, WEB, meta)
+            updated_fields = uploader.edit(meta.title, meta.new_title, meta.new_content)
+            note_hook(UPDATED, WEB, meta)
+            self.save_images(meta.source, title, request)
 
-        content_yaml, content_md = separate_yaml(new_content)
+        content_yaml, content_md = separate_yaml(meta.new_content)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
@@ -225,21 +262,21 @@ class NoteEditView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        title = data['title']
-        content = data['content']
-        source = data['source']
-
-        with get_storage_service(source) as (uploader, _):
-            if uploader.get(title=title):
+        meta = CreatedNote(data['source'], data['title'], data['content'], request, None)
+        note_hook(BEFORE_CREATE_GETTING_ADAPTER, WEB, meta)
+        with get_storage_service(meta.source) as (uploader, source):
+            meta.adapter = uploader
+            meta.source = source
+            if uploader.get(title=meta.title):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
-            note_hook(BEFORE_CREATE, WEB, (source, title, content), uploader, request)
-            uploader.add(title, content)
-            note_hook(CREATED, WEB, (source, title, content), uploader, request)
-            self.save_images(source, title, request)
+            note_hook(BEFORE_CREATE, WEB, meta)
+            uploader.add(meta.title, meta.content)
+            note_hook(CREATED, WEB, meta)
+            self.save_images(meta.source, meta.title, request)
 
-        content_yaml, content_md = separate_yaml(content)
+        content_yaml, content_md = separate_yaml(meta.content)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': ['title', 'content'], 'content_html': markdownify(content_md)},

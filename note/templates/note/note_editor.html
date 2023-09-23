@@ -34,6 +34,7 @@
     <script>
         var URL_SAVE_NOTE = '/edit';
         var CSRF_TOKEN = "{{ csrf_token }}";
+        HAS_ACCESS_TO_EDIT = {% if has_access_to_edit %}true{% else %}false{% endif %};
     </script>
 
     <script>
@@ -92,11 +93,11 @@
                     this.$emit('cancel', event, this, this.mTitle, this.mContent);
                 },
                 on_code_mirror_ready(cm) {
-                function buf2hex(buffer) { // buffer is an ArrayBuffer
-  return [...new Uint8Array(buffer)]
-      .map(x => x.toString(16).padStart(2, '0'))
-      .join('');
-}
+										function buf2hex(buffer) { // buffer is an ArrayBuffer
+												return [...new Uint8Array(buffer)]
+														.map(x => x.toString(16).padStart(2, '0'))
+														.join('');
+										}
 
                     self = this;
                     cm.on(
@@ -158,7 +159,7 @@
 												@save="save"
 												@cancel="cancel"
 										></note-editor-component>
-										<div style="text-align: center;" :class="{'d-none': mode == 'edit'}">
+										<div style="text-align: center;" :class="{'d-none': mode == 'edit'}" v-if="has_access_to_edit">
     										<input type="button" value="Редактировать заметку" @click="edit" class="btn btn-outline-secondary">
     								</div>
                 {% endif %}
@@ -175,6 +176,7 @@
                     successMessage: '',
                     mode: is_new ? 'edit' : 'view',
                     is_new: is_new,
+                    has_access_to_edit: HAS_ACCESS_TO_EDIT,
                 }
             },
             methods: {
@@ -190,6 +192,10 @@
                     this.view();
                 },
                 save(event, title, content, images, toggle_mode) {
+                    let url = document.createElement('a');
+                    url.href = location.href;
+                    url.pathname += URL_SAVE_NOTE;
+
                     let self = this;
                     this.successMessage = 'Сохраняем...';
                     let form = event.target.form;
@@ -204,7 +210,7 @@
                     }
                     if (this.is_new) {
                         $.ajax({
-                            url: window.location.href + URL_SAVE_NOTE,
+                            url: url.href,
                             headers: {
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
@@ -239,12 +245,19 @@
                                     set_invalid_field(form, xhr.responseJSON);
                                     self.errorMessage = ''
                                 },
-                            },
+                                401: function(xhr) {
+                                    clear_status_fields(form);
+                                    self.errorMessage = xhr.responseJSON.detail;
+                                },
+                                403: function(xhr) {
+                                    clear_status_fields(form);
+                                    self.errorMessage = xhr.responseJSON.detail;
+                                },                            },
                             method: "post",
                         });
                     } else {
                         $.ajax({
-                            url: window.location.href + URL_SAVE_NOTE,
+                            url: url.href,
                             headers: {
                                 "X-CSRFToken": CSRF_TOKEN,
                             },
@@ -277,6 +290,14 @@
                                     clear_status_fields(form);
                                     set_invalid_field(form, xhr.responseJSON);
                                     self.errorMessage = ''
+                                },
+                                401: function(xhr) {
+                                    clear_status_fields(form);
+                                    self.errorMessage = xhr.responseJSON.detail;
+                                },
+                                403: function(xhr) {
+                                    clear_status_fields(form);
+                                    self.errorMessage = xhr.responseJSON.detail;
                                 },
                                 404: function(xhr) {
                                     clear_status_fields(form);
