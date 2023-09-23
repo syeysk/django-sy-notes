@@ -17,7 +17,7 @@ admin.site.register(ImageNote, ImageNoteAdmin)
 
 
 class NoteStorageServiceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'service', 'source', 'description', 'is_default')
+    list_display = ('id', 'user', 'service', 'source', 'description', 'is_default')
 
 
 admin.site.register(NoteStorageServiceModel, NoteStorageServiceAdmin)

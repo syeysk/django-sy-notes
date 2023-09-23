@@ -20,7 +20,6 @@ from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
-from django_sy_framework.linker.utils import link_instance_from_request
 from note.adapters import get_storage_service, get_service_names, run_initiator
 from utils.constants import BEFORE_CREATE, BEFORE_EDIT, CREATED, EDITED, WEB
 from note.models import (
@@ -195,7 +194,7 @@ class NoteEditorView(APIView):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
-            note_hook(BEFORE_EDIT, WEB, (title, new_title, new_content), uploader, request)
+            note_hook(BEFORE_EDIT, WEB, (source, title, new_title, new_content), uploader, request)
             updated_fields = uploader.edit(title, new_title, new_content)
             note_hook(EDITED, WEB, (title, new_title, new_content), uploader, request)
             note = Note.objects.filter(storage__source=source, title=title).first()
@@ -230,14 +229,9 @@ class NoteEditorView(APIView):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
-            note_hook(BEFORE_CREATE, WEB, (title, content), uploader, request)
+            note_hook(BEFORE_CREATE, WEB, (source, title, content), uploader, request)
             uploader.add(title, content)
-            note_hook(CREATED, WEB, (title, content), uploader, request)
-
-            link_to = request.GET.get('link_to') or (source[1:] if source.startswith('.project-') else None)
-            if link_to:
-                instance = Note.objects.filter(title=title, storage=uploader.storage).first()
-                link_instance_from_request(instance, link_to)
+            note_hook(CREATED, WEB, (source, title, content), uploader, request)
 
         content_yaml, content_md = separate_yaml(content)
         return Response(
