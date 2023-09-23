@@ -69,7 +69,7 @@ class DjangoServerAdapter(BaseAdapter):
 
     def add(self, title, content):
         from note.models import Note
-        note = Note(title=title, content=content, storage_uuid=self.storage.uuid, storage=self.storage)
+        note = Note(title=title, content=content, storage=self.storage)
         note.fetch_search_fields()
         note.save()
         return {'title': note.title, 'content': note.content}
