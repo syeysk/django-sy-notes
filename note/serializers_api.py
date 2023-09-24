@@ -77,6 +77,11 @@ class NoteResponseSerializer(serializers.Serializer):
     source = serializers.CharField(max_length=20, help_text='Название базы')
 
 
+class ErroResponseSerializer(serializers.Serializer):
+    """Сериализатор ошибки со стороны клиента"""
+    detail = serializers.CharField(max_length=100, help_text='Тесто ошибки')
+
+
 class NoteSearchNoteResponseSerializer(serializers.Serializer):
     """Сериализатор заметки"""
     content = serializers.CharField(

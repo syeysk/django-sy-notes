@@ -10,9 +10,11 @@ from rest_framework.views import APIView
 from django_sy_framework.custom_auth.authentication import TokenAuthentication
 from django_sy_framework.custom_auth.permissions import CheckIsUsernNotAnonymousUser
 from note.adapters import get_storage_service
+from note.serializers import ERROR_NAME_MESSAGE
 from note.serializers_api import (
     NoteAddViewSerializer,
     NoteEditViewSerializer,
+    ErroResponseSerializer,
     NoteResponseSerializer,
     NoteSearchViewSerializer,
     NoteSearchResponseSerializer,
@@ -116,7 +118,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя запрашиваемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={200: NoteResponseSerializer, 404: None},
+        responses={200: NoteResponseSerializer, 404: ErroResponseSerializer},
         tags=['Заметки'],
         summary='Получить заметку',
     )
@@ -126,7 +128,7 @@ class NoteView(APIView):
             note_data = uploader.get(title=unquote(title))
 
             if not note_data:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
             note_data['source'] = source
 
@@ -138,7 +140,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя создаваемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={200: NoteResponseSerializer},
+        responses={204: None, 422: ErroResponseSerializer, 400: 'Ошибка в значениях полей'},
         tags=['Заметки'],
         summary='Создать заметку',
     )
@@ -149,16 +151,17 @@ class NoteView(APIView):
         data = serializer.validated_data
 
         title = unquote(title)
+        if title.startswith('.'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
         with get_storage_service(request.GET.get('source')) as (uploader, source):
             if uploader.get(title=title):
                 data = {'detail': 'Заметка с таким названием уже существует'}
-                return Response(status=status.HTTP_200_OK, data=data)
+                return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=data)
 
-            note_data = uploader.add(title, data['content'])
-            note_data['source'] = source
+            uploader.add(title, data['content'])
 
-        return Response(status=status.HTTP_200_OK, data=note_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         request=NoteEditViewSerializer,
@@ -166,7 +169,7 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя редактируемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={201: None, 404: None},
+        responses={204: None, 400: 'Ошибка полей', 404: ErroResponseSerializer, 422: ErroResponseSerializer},
         tags=['Заметки'],
         summary='Отредактировать заметку',
     )
@@ -176,21 +179,24 @@ class NoteView(APIView):
 
         Обязателен как минимум один из параметров в теле: `new_content` или `new_title`.
         """
-        #self.authenticate()
         serializer = NoteEditViewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         title = unquote(title)
         new_title = data.get('new_title')
+        if title.startswith('.'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
+        elif new_title.startswith('.'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'new_title': [ERROR_NAME_MESSAGE]})
 
         with get_storage_service(request.GET.get('source')) as (uploader, _):
             if not uploader.get(title=title):
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
             if new_title and new_title != title and uploader.get(title=new_title):
                 response_data = {'detail': 'Заметка с таким названием уже существует'}
-                return Response(status=status.HTTP_200_OK, data=response_data)
+                return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=response_data)
 
             uploader.edit(title, new_title, data.get('new_content'))
 
@@ -201,16 +207,19 @@ class NoteView(APIView):
             source_parametr,
             OpenApiParameter(name='title', description='имя удаляемой заметки', location=OpenApiParameter.PATH),
         ],
-        responses={201: None, 404: None},
+        responses={204: None, 404: ErroResponseSerializer},
         tags=['Заметки'],
         summary='Удалить заметку',
     )
     def delete(self, request, title):
         """Метод удаления заметки"""
+        if title.startswith('.'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
+
         with get_storage_service(request.GET.get('source')) as (uploader, _):
             note_data = uploader.get(title=unquote(title))
             if not note_data:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
             uploader.delete(title)
 

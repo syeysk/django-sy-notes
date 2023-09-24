@@ -30,9 +30,10 @@ from note.models import (
     prepare_to_search,
 )
 from note.serializers import (
+    ERROR_NAME_MESSAGE,
     NoteCreateViewSerializer,
     NoteEditViewSerializer,
-    NoteStorageServiceSerializer, ERROR_NAME_MESSAGE,
+    NoteStorageServiceSerializer,
 )
 from utils.constants import (
     BEFORE_CREATE,
