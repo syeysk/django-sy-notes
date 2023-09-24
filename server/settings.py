@@ -115,6 +115,7 @@ SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX_INSERT': 'api',
     #'SCHEMA_PATH_PREFIX': '/api/v[0-9]',
     'SERVE_URLCONF': 'server.urls_api',
+    'SERVERS': [{'url': f'{SITE_URL}'}],
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -184,7 +184,7 @@ class NoteView(View):
 
             meta = CreatePageNote(source, request)
             note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
-            context = {'note': None, 'source': meta.source}
+            context = {'note': None, 'source': meta.source, 'has_access_to_edit': True}
             return render(request, 'note/note_editor.html', context)
 
         with get_storage_service(source) as (uploader, source):
