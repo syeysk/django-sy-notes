@@ -1,7 +1,6 @@
 from django.conf import settings
 
 from django_sy_framework.linker.utils import link_instance_from_request
-from django_sy_framework.utils.exceptions import Http403
 from note.models import Note, NoteStorageServiceModel
 from utils.constants import (
     BEFORE_CREATE,
