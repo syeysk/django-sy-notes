@@ -213,11 +213,12 @@ class NoteView(APIView):
     )
     def delete(self, request, title):
         """Метод удаления заметки"""
+        title = unquote(title)
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
         with get_storage_service(request.GET.get('source')) as (uploader, _):
-            note_data = uploader.get(title=unquote(title))
+            note_data = uploader.get(title=title)
             if not note_data:
                 return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
