@@ -21,7 +21,6 @@ from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
-from django_sy_framework.utils.exceptions import Http401
 from note.adapters import get_storage_service, get_service_names, run_initiator
 from note.models import (
     ImageNote,
@@ -180,7 +179,7 @@ class NoteView(View):
         source = request.GET.get('source') or request.COOKIES.get('source')
         if quoted_title is None:
             if not request.user.is_authenticated:
-                raise Http401('Для создания заметки требуется авторизация')
+                return render(request, '401.html')
 
             meta = CreatePageNote(source, request)
             note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
