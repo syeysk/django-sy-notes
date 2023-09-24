@@ -66,7 +66,7 @@
 				<p>{{ note.content|slice:":1000" }}</p>
 		{% endfor %}
 
-    <p>
+    <p class="paginator">
 		  	{% if current_page > 1 %}
     		  	<a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p=1">1</a>
 		  	{% endif %}
