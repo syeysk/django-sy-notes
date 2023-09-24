@@ -187,7 +187,7 @@ class NoteView(APIView):
         new_title = data.get('new_title')
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
-        elif new_title.startswith('.'):
+        elif new_title and new_title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'new_title': [ERROR_NAME_MESSAGE]})
 
         with get_storage_service(request.GET.get('source')) as (uploader, _):
