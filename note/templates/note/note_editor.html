@@ -148,7 +148,7 @@
 								<teleport to="h1">[[ title ]]</teleport>
                 <note-viewer-component
                     :class="{'d-none': mode == 'edit'}"
-                    :content_html="content_html"
+                    :content_html="!syntaxErrorMessage ? content_html : 'Не удалось отобразить содержимое по причине: ' + syntaxErrorMessage + '.'"
                 ></note-viewer-component>
                 {% if request.user.is_authenticated %}
 										<note-editor-component
@@ -160,6 +160,7 @@
 												@save="save"
 												@cancel="cancel"
 										></note-editor-component>
+										<br>
 										<div style="text-align: center;" :class="{'d-none': mode == 'edit'}" v-if="has_access_to_edit">
     										<input type="button" value="Редактировать заметку" @click="edit" class="btn btn-outline-secondary">
     								</div>
@@ -172,6 +173,7 @@
                 return {
                     title: is_new ? '' : note_object.title,
                     content: is_new ? '' : note_object.content,
+                    syntaxErrorMessage: is_new ? '' : note_object.error_message,
                     content_html: is_new ? '' : note_object.content_html,
                     errorMessage: '',
                     successMessage: '',
@@ -185,7 +187,9 @@
                     this.mode = 'edit';
                 },
                 view() {
-                    this.mode = 'view';
+                    if (!this.syntaxErrorMessage) {
+                        this.mode = 'view';
+                    }
                 },
                 cancel(event, editor, title, content) {
                     editor.mTitle = this.title;
@@ -220,9 +224,16 @@
                             processData: false,
                             data: form_data,
                             success: function(result) {
+                                if (result.error_message) {
+                                    self.errorMessage = result.error_message;
+                                    self.successMessage = '';
+                                    return;
+                                }
+
                                 clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
                                 self.successMessage = '';
+                                self.badMessage = '';
                                 history.pushState(
                                     null,
                                     null,
@@ -230,6 +241,7 @@
                                 );
                                 self.title = title;
                                 self.content = content;
+                                self.syntaxErrorMessage = '';
                                 self.content_html = result.content_html;
                                 images.clear();
                                 if (toggle_mode) {
@@ -267,9 +279,16 @@
                             processData: false,
                             data: form_data,
                             success: function(result) {
+                                if (result.error_message) {
+                                    self.errorMessage = 'Мы сохранили заметку, хотя она не отобразится, т. к.: ' + result.error_message;
+                                    self.successMessage = '';
+                                    return;
+                                }
+
                                 clear_status_fields(form);
                                 set_valid_field(form, result.updated_fields);
                                 self.successMessage = '';
+                                self.badMessage = '';
                                 history.pushState(
                                     null,
                                     null,
@@ -277,6 +296,7 @@
                                 );
                                 self.title = title;
                                 self.content = content;
+                                self.syntaxErrorMessage = '';
                                 self.content_html = result.content_html;
                                 images.clear();
                                 if (toggle_mode) {

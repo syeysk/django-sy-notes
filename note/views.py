@@ -21,6 +21,7 @@ from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.views import APIView
 from rest_framework import status
 
+from django_sy_framework.utils.logger import logger
 from note.adapters import get_storage_service, get_service_names, run_initiator
 from note.models import (
     ImageNote,
@@ -96,6 +97,7 @@ class CreatePageNote:
 class ViewPageNote:
     source: str
     title: str
+    content: str
     request: 'django.http.HttpRequest' = None
     has_access_to_edit: bool = True
 
@@ -173,6 +175,21 @@ def note_hook_old(request):  # TODO: метод хука планируется 
         return Response(status=status.HTTP_200_OK, data=data)
 
 
+def safe_markdown(content):
+    error_message = None
+    content_html = None
+    content_yaml, content_md = separate_yaml(content)
+    content_md = content_md.replace('\r\n', '\n')
+    try:
+        content_html = markdownify(content_md)
+    except Exception as error:
+        import logging
+        error_message = 'Заметка содержит синтаксическую ошибку'
+        logger.error('Ошибка парсинга заметки: %s' % error)
+
+    return content_html, error_message
+
+
 class NoteView(View):
     @staticmethod
     def get(request, quoted_title=None):
@@ -192,12 +209,16 @@ class NoteView(View):
         if not note:
             raise Http404('Заметка не найдена')
 
-        _, content_md = separate_yaml(note['content'])
-        content_md = content_md.replace('\r\n', '\n')
-        meta = ViewPageNote(source, note['title'], request)
+        meta = ViewPageNote(source, note['title'], note['content'], request)
+        content_html, error_message = safe_markdown(meta.content)
         note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
         context = {
-            'note': {'title': note['title'], 'content': note['content'], 'content_html': markdownify(content_md)},
+            'note': {
+                'title': meta.title,
+                'content': meta.content,
+                'content_html': content_html,
+                'error_message': error_message,
+            },
             'source': meta.source,
             'has_access_to_edit': meta.has_access_to_edit,
         }
@@ -248,11 +269,10 @@ class NoteEditView(APIView):
             note_hook(UPDATED, WEB, meta)
             self.save_images(meta.source, title, request)
 
-        content_yaml, content_md = separate_yaml(meta.new_content)
-        content_md = content_md.replace('\r\n', '\n')
+        content_html, error_message = safe_markdown(meta.new_content)
         return Response(
             status=status.HTTP_200_OK,
-            data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
+            data={'updated_fields': updated_fields, 'content_html': content_html, 'error_message': error_message},
         )
 
     def post(self, request):
@@ -278,11 +298,10 @@ class NoteEditView(APIView):
             note_hook(CREATED, WEB, meta)
             self.save_images(meta.source, meta.title, request)
 
-        content_yaml, content_md = separate_yaml(meta.content)
-        content_md = content_md.replace('\r\n', '\n')
+        content_html, error_message = safe_markdown(meta.content)
         return Response(
             status=status.HTTP_200_OK,
-            data={'updated_fields': ['title', 'content'], 'content_html': markdownify(content_md)},
+            data={'updated_fields': ['title', 'content'], 'content_html': content_html, 'error_message': error_message},
         )
 
 

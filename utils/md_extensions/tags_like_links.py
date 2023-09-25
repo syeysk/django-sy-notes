@@ -5,7 +5,7 @@ from django.shortcuts import resolve_url
 from markdown.preprocessors import Preprocessor
 from markdown.extensions import Extension
 
-TAG_PATTERN = rf'(?:^|[^\\])(#[a-zA-Zа-яА-ЯёЁ][a-zA-Z0-9а-яА-ЯёЁ_-]*)'
+TAG_PATTERN = rf'(?:^|[\s])(#[a-zA-Zа-яА-ЯёЁ][a-zA-Z0-9а-яА-ЯёЁ_-]*)'
 
 
 class TagsLikeLinksInlineProcessor(Preprocessor):

@@ -5,6 +5,7 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 from note.models import NoteStorageServiceModel
+from utils.logger import logger
 
 
 def collect_link_elements(root):
@@ -13,7 +14,12 @@ def collect_link_elements(root):
     for child in root.iter('a'):
         url = child.get('href')
         if url:
-            url = urlparse(url)
+            try:
+                url = urlparse(url)
+            except Exception as error:
+                logger.warn(f'ObsidianLinksTreeprocessor: {str(error)}: {url}')
+                continue
+
             if url.scheme == 'obsidian' and url.hostname == 'open':
                 query = parse_qs(url.query)
                 vault = query.get('vault')
