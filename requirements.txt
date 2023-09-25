@@ -15,3 +15,4 @@ pyyaml==6.0
 selenium==4.10.0
 typesense==0.13.1
 git+https://github.com/syeysk/django-sy-framework.git
+git+https://github.com/syeysk/md_mermaid.git

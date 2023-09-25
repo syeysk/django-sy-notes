@@ -193,6 +193,7 @@ class NoteView(View):
             raise Http404('Заметка не найдена')
 
         _, content_md = separate_yaml(note['content'])
+        content_md = content_md.replace('\r\n', '\n')
         meta = ViewPageNote(source, note['title'], request)
         note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
         context = {
@@ -248,6 +249,7 @@ class NoteEditView(APIView):
             self.save_images(meta.source, title, request)
 
         content_yaml, content_md = separate_yaml(meta.new_content)
+        content_md = content_md.replace('\r\n', '\n')
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': updated_fields, 'content_html': markdownify(content_md)},
@@ -277,6 +279,7 @@ class NoteEditView(APIView):
             self.save_images(meta.source, meta.title, request)
 
         content_yaml, content_md = separate_yaml(meta.content)
+        content_md = content_md.replace('\r\n', '\n')
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': ['title', 'content'], 'content_html': markdownify(content_md)},
