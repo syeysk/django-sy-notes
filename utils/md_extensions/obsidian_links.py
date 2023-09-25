@@ -5,7 +5,7 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 from note.models import NoteStorageServiceModel
-from utils.logger import logger
+from django_sy_framework.utils.logger import logger
 
 
 def collect_link_elements(root):
