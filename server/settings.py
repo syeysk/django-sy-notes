@@ -152,6 +152,7 @@ MARKDOWNIFY = {
             'utils.md_extensions.obsidian_links:ObsidianLinksExtension',
             'utils.md_extensions.wiki_links:WikiLinksExtension',
             'utils.md_extensions.internal_images:InternalImagesExtension',
+            'utils.md_extensions.tags_like_links:TagsLikeLinksExtension',
         ],
     }
 }

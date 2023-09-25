@@ -4,7 +4,7 @@ from markdown.extensions import Extension
 import xml.etree.ElementTree as etree
 
 
-class WikiLinksDelInlineProcessor(InlineProcessor):
+class WikiLinksInlineProcessor(InlineProcessor):
     def handleMatch(self, m, data):
         title = (m.group(1) or '').strip().replace('\|', '|')
         link_title = (m.group(2) or '').strip().replace('\|', '|')
@@ -39,4 +39,4 @@ class WikiLinksExtension(Extension):
         """
         NOT_VERT_PATTERN = r'(?:[^|]|\\\|)'
         LINK_PATTERN = rf'\[\[({NOT_VERT_PATTERN}*?)(\|{NOT_VERT_PATTERN}*?)?\]\]'  # like [[note title]] or [[note title|view title]]
-        md.inlinePatterns.register(WikiLinksDelInlineProcessor(LINK_PATTERN, md), 'wiki_links', 10)
+        md.inlinePatterns.register(WikiLinksInlineProcessor(LINK_PATTERN, md), 'wiki_links', 10)

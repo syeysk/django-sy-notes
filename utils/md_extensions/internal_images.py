@@ -5,19 +5,14 @@ from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
 
-def collect_imaages(root, images=None):
-    if images is None:
-        images = []
-
-    for child in root:
-        if child.tag == 'img':
-            url = child.get('src')
-            if url:
-                url = urlparse(url)
-                if not (url.scheme or url.hostname) and url.path:
-                    images.append(child)
-        else:
-            collect_imaages(child, images)
+def collect_imaages(root):
+    images = []
+    for child in root.iter('img'):
+        url = child.get('src')
+        if url:
+            url = urlparse(url)
+            if not (url.scheme or url.hostname) and url.path:
+                images.append(child)
 
     return images
 

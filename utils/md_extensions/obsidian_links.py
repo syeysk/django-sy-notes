@@ -7,27 +7,20 @@ from markdown.treeprocessors import Treeprocessor
 from note.models import NoteStorageServiceModel
 
 
-def collect_link_elements(root, links=None, sources=None):
-    if links is None:
-        links = []
-
-    if sources is None:
-        sources = set()
-
-    for child in root:
-        if child.tag == 'a':
-            url = child.get('href')
-            if url:
-                url = urlparse(url)
-                if url.scheme == 'obsidian' and url.hostname == 'open':
-                    query = parse_qs(url.query)
-                    vault = query.get('vault')
-                    file = query.get('file')
-                    if vault and file:
-                        links.append((child, file[0], vault[0]))
-                        sources.add(vault[0])
-        else:
-            collect_link_elements(child, links, sources)
+def collect_link_elements(root):
+    links = []
+    sources = set()
+    for child in root.iter('a'):
+        url = child.get('href')
+        if url:
+            url = urlparse(url)
+            if url.scheme == 'obsidian' and url.hostname == 'open':
+                query = parse_qs(url.query)
+                vault = query.get('vault')
+                file = query.get('file')
+                if vault and file:
+                    links.append((child, file[0], vault[0]))
+                    sources.add(vault[0])
 
     return links, sources
 
