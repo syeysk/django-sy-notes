@@ -6,7 +6,6 @@ firebase-admin==5.2.0
 requests==2.31.0
 djangorestframework==3.14.0
 django-environ==0.10.0
-django-markdownify==0.9.3
 drf-spectacular==0.26.2
 Pillow==10.0.1
 pytest==7.3.1
@@ -15,4 +14,5 @@ pyyaml==6.0
 selenium==4.10.0
 typesense==0.13.1
 git+https://github.com/syeysk/django-sy-framework.git
+git+https://github.com/syeysk/django-markdownify.git
 git+https://github.com/syeysk/md_mermaid.git

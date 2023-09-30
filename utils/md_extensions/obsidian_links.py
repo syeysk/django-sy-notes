@@ -52,7 +52,7 @@ class ObsidianLinksExtension(Extension):
         self.md = md
         self.reset()
         preprocessor = ObsidianLinksTreeprocessor(md)
-        md.treeprocessors.register(preprocessor, 'obsidian_link', 10)
+        md.treeprocessors.register(preprocessor, 'obsidian_links', 10)
 
     def reset(self):
         pass

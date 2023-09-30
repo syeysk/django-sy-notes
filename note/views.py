@@ -175,13 +175,14 @@ def note_hook_old(request):  # TODO: метод хука планируется 
         return Response(status=status.HTTP_200_OK, data=data)
 
 
-def safe_markdown(content):
+def safe_markdown(content, source):
     error_message = None
     content_html = None
     content_yaml, content_md = separate_yaml(content)
     content_md = content_md.replace('\r\n', '\n')
+    config = {'utils.md_extensions.apply_source:ApplySourceExtension': {'source': source}}
     try:
-        content_html = markdownify(content_md)
+        content_html = markdownify(content_md, dynamic_extension_config=config)
     except Exception as error:
         import logging
         error_message = 'Заметка содержит синтаксическую ошибку'
@@ -210,7 +211,7 @@ class NoteView(View):
             raise Http404('Заметка не найдена')
 
         meta = ViewPageNote(source, note['title'], note['content'], request)
-        content_html, error_message = safe_markdown(meta.content)
+        content_html, error_message = safe_markdown(meta.content, meta.source)
         note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
         context = {
             'note': {
@@ -269,7 +270,7 @@ class NoteEditView(APIView):
             note_hook(UPDATED, WEB, meta)
             self.save_images(meta.source, title, request)
 
-        content_html, error_message = safe_markdown(meta.new_content)
+        content_html, error_message = safe_markdown(meta.new_content, meta.source)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': updated_fields, 'content_html': content_html, 'error_message': error_message},
@@ -298,7 +299,7 @@ class NoteEditView(APIView):
             note_hook(CREATED, WEB, meta)
             self.save_images(meta.source, meta.title, request)
 
-        content_html, error_message = safe_markdown(meta.content)
+        content_html, error_message = safe_markdown(meta.content, meta.source)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': ['title', 'content'], 'content_html': content_html, 'error_message': error_message},
