@@ -80,8 +80,6 @@
 {% block end_of_body %}
     {{ block.super }}
     <script>
-        var CSRF_TOKEN = "{{ csrf_token }}";
-
         $('.do_command').click(function(event){
             $.ajax({
                 url: '',
