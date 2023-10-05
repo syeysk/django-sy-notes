@@ -335,6 +335,10 @@ class NoteListView(View):
                 else:
                     notes, meta = uploader.get_list(page_number, count_on_page)
 
+                for note in notes:
+                    content_html, error_message = safe_markdown(note['content'][:400], source)
+                    note['html'] = content_html
+
                 context.update({
                     'notes': notes,
                     'last_page': meta['num_pages'],
