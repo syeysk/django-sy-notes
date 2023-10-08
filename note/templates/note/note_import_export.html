@@ -63,16 +63,18 @@
      -->
 
     <h3>Очистить базу</h3>
-    <form>
+    <di>
 			  <input type="hidden" name="command" value="clear">
-        <select name="source-to" class="form-select form-select-lg mb-3">
-            {% for storage in storages_to %}
-                <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
-                    {{ storage.source }} | {{ storage.description }}
-                </option>
-            {% endfor %}
-        </select>
-        <input type="button" value="Очистить" class="do_command btn btn-secondary">
+		  	<div class="input-group mb-3">
+            <select name="source-to" class="form-select">
+                {% for storage in storages_to %}
+                    <option value="{{ storage.source }}"{% if storage.is_default %} selected{% endif %}>
+                        {{ storage.source }} | {{ storage.description }}
+                    </option>
+                {% endfor %}
+            </select>
+					  <button class="btn btn-secondary do_command">Очистить</button>
+        </div>
     </form>
 
 {% endblock %}
