@@ -3,7 +3,7 @@ from note.models import ImageNote, Note, NoteStorageServiceModel
 
 
 class NoteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'storage', 'title', 'search_title')
+    list_display = ('id', 'storage', 'user', 'title', 'search_title')
 
 
 admin.site.register(Note, NoteAdmin)

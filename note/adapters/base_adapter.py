@@ -27,11 +27,12 @@ class BaseAdapter:
         """
         raise NotImplementedError('Getting notes is not supported by this adapter')
 
-    def add(self, title: str, content: str) -> dict:
+    def add(self, title: str, content: str, user=None) -> dict:
         """Create a note into a storage.
 
         :param title: title of a note. Must be unique value
         :param content: content of a note
+        :param user: creator of a note
         :return: `dict` like `{'title': '', 'content': ''}`
         """
         raise NotImplementedError('Adding notes is not supported by this adapter')

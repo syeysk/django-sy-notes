@@ -5,11 +5,11 @@ class NoteBackuperMixin:
     def b_clear(self):
         self.queryset.delete()
 
-    def b_add(self, title, content):
+    def b_add(self, title, content, user=None):
         from note.models import Note
         note = self.queryset.filter(title=title).first()
         if not note:
-            note = Note(title=title, content=content, storage=self.storage)
+            note = Note(title=title, content=content, storage=self.storage, user=user)
             note.fetch_search_fields()
             note.save()
 

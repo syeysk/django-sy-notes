@@ -27,7 +27,7 @@ class GithubAdapter(BaseAdapter):
 
     def get(self, title):
         response = requests.get(self.URL_NOTE.format(self.owner, self.repo, self.branch, self.directory, quote(title)))
-        return None if response.status_code == 404 else {'title': title, 'content': response.text}
+        return None if response.status_code == 404 else {'title': title, 'content': response.text, 'user': None}
 
     def load_archive(self):
         archive_dir = Path(__file__).resolve().parent.parent / 'cache_archives'

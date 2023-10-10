@@ -42,10 +42,10 @@ class FirestoreAdapter(NoteBackuperMixin, BaseAdapter):
         if document.exists:
             content = document.get(self.field)
             self.b_add(title, content)
-            return {'title': ref_document.id, 'content': content}
+            return {'title': ref_document.id, 'content': content, 'user': None}
 
-    def add(self, title, content):
-        self.b_add(title, content)
+    def add(self, title, content, user=None):
+        self.b_add(title, content, user)
         self.collection.document(title).set({self.field: content})
         return {'title': title, 'content': content}
 

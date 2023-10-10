@@ -8,6 +8,7 @@ from urllib.parse import unquote
 import yaml
 import requests
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.images import ImageFile
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
@@ -85,6 +86,7 @@ class UpdatedNote:
     new_content: str
     request: 'django.http.HttpRequest' = None
     adapter: 'note.adapters.base_adapter.BaseAdapter' = None
+    user: get_user_model() = None
 
 
 @dataclass
@@ -100,6 +102,7 @@ class ViewPageNote:
     content: str
     request: 'django.http.HttpRequest' = None
     has_access_to_edit: bool = True
+    user: get_user_model() = None
 
 
 @extend_schema(
@@ -210,7 +213,7 @@ class NoteView(View):
         if not note:
             raise Http404('Заметка не найдена')
 
-        meta = ViewPageNote(source, note['title'], note['content'], request)
+        meta = ViewPageNote(source, note['title'], note['content'], request, True, note['user'])
         content_html, error_message = safe_markdown(meta.content, meta.source)
         note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
         context = {
@@ -219,6 +222,7 @@ class NoteView(View):
                 'content': meta.content,
                 'content_html': content_html,
                 'error_message': error_message,
+                'username': note['user'].username if note['user'] else None
             },
             'source': meta.source,
             'has_access_to_edit': meta.has_access_to_edit,
@@ -253,18 +257,20 @@ class NoteEditView(APIView):
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        meta = UpdatedNote(data['source'], title, data.get('title'), data.get('content'), request, None)
+        meta = UpdatedNote(data['source'], title, data.get('title'), data.get('content'), request, None, None)
         note_hook(BEFORE_UPDATE_GETTING_ADAPTER, WEB, meta)
         with get_storage_service(meta.source) as (uploader, source):
-            meta.adapter = uploader
-            meta.source = source
-            if not uploader.get(title=title):
+            note = uploader.get(title=title)
+            if not note:
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
             if meta.new_title and meta.new_title != meta.title and uploader.get(title=meta.new_title):
                 response_data = {'title': ['Заметка с таким названием уже существует']}
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
+            meta.adapter = uploader
+            meta.source = source
+            meta.user = note['user']
             note_hook(BEFORE_UPDATE, WEB, meta)
             updated_fields = uploader.edit(meta.title, meta.new_title, meta.new_content)
             note_hook(UPDATED, WEB, meta)
@@ -295,7 +301,7 @@ class NoteEditView(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data=response_data)
 
             note_hook(BEFORE_CREATE, WEB, meta)
-            uploader.add(meta.title, meta.content)
+            uploader.add(meta.title, meta.content, request.user)
             note_hook(CREATED, WEB, meta)
             self.save_images(meta.source, meta.title, request)
 

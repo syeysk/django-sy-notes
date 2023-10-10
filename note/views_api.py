@@ -159,7 +159,7 @@ class NoteView(APIView):
                 data = {'detail': 'Заметка с таким названием уже существует'}
                 return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=data)
 
-            uploader.add(title, data['content'])
+            uploader.add(title, data['content'], request.user)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

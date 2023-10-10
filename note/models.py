@@ -26,6 +26,7 @@ class Note(models.Model):
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
     search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=255, null=False, db_index=True)
     linker = GenericRelation(Linker, related_query_name='note')
+    user = models.ForeignKey(get_user_model(), null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title

@@ -63,11 +63,11 @@ class DjangoServerAdapter(BaseAdapter):
     def get(self, title):
         notes = self.queryset.filter(title=title)
         note = notes.first()
-        return {'title': note.title, 'content': note.content} if note else None
+        return {'title': note.title, 'content': note.content, 'user': note.user} if note else None
 
-    def add(self, title, content):
+    def add(self, title, content, user=None):
         from note.models import Note
-        note = Note(title=title, content=content, storage=self.storage)
+        note = Note(title=title, content=content, storage=self.storage, user=user)
         note.fetch_search_fields()
         note.save()
         return {'title': note.title, 'content': note.content}
