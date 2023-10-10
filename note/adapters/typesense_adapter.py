@@ -21,7 +21,7 @@ class TypesenseAdapter(BaseAdapter):
     index = 0
 
     def __init__(self, storage, server, port, protocol, api_key):
-        self.storage = storage
+        super().__init__(storage)
         self.client = Client({
             'nodes': [{
                 'host': server,

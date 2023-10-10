@@ -16,7 +16,7 @@ class GithubAdapter(BaseAdapter):
     URL_NOTE = 'https://raw.githubusercontent.com/{}/{}/{}{}/{}.md'
 
     def __init__(self, storage, owner, repo, branch, directory):
-        self.storage = storage
+        super().__init__(storage)
         self.owner = owner
         self.repo = repo
         self.branch = branch

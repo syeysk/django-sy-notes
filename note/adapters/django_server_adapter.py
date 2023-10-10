@@ -9,9 +9,7 @@ class DjangoServerAdapter(BaseAdapter):
     portion = []
 
     def __init__(self, storage):
-        from note.models import Note
-        self.storage = storage
-        self.queryset = Note.objects.filter(storage=storage)
+        super().__init__(storage)
 
     def clear(self):
         self.queryset.delete()

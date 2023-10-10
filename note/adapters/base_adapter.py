@@ -3,6 +3,10 @@ from django.shortcuts import resolve_url
 
 
 class BaseAdapter:
+    def __init__(self, storage):
+        from note.models import Note
+        self.storage = storage
+        self.queryset = Note.objects.filter(storage=storage)
 
     def close(self):
         pass

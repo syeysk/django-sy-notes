@@ -1,16 +1,17 @@
 from firebase_admin import credentials, delete_app, firestore, initialize_app
 
 from note.adapters.base_adapter import BaseAdapter
+from note.adapters.mixins import NoteBackuperMixin
 from note.serializers_uploader import UploaderFirestoreSerializer
 
 
-class FirestoreAdapter(BaseAdapter):
+class FirestoreAdapter(NoteBackuperMixin, BaseAdapter):
     verbose_name = 'Firestore'
     serializer = UploaderFirestoreSerializer
     MAX_PORTION_SIZE = 500
 
     def __init__(self, storage, certificate):
-        self.storage = storage
+        super().__init__(storage)
         cred = credentials.Certificate(certificate)
         self.app = initialize_app(cred)
         self.db = firestore.client()
@@ -22,7 +23,7 @@ class FirestoreAdapter(BaseAdapter):
         delete_app(self.app)
 
     def clear(self):
-        ...
+        self.b_clear()
 
     def add_to_portion(self, file_name, file_content):
         ref = self.collection.document(file_name)
@@ -38,13 +39,18 @@ class FirestoreAdapter(BaseAdapter):
     def get(self, title):
         ref_document = self.collection.document(title)
         document = ref_document.get()
-        return {'title': ref_document.id, 'content': document.get(self.field)} if document.exists else None
+        if document.exists:
+            content = document.get(self.field)
+            self.b_add(title, content)
+            return {'title': ref_document.id, 'content': content}
 
     def add(self, title, content):
+        self.b_add(title, content)
         self.collection.document(title).set({self.field: content})
         return {'title': title, 'content': content}
 
     def edit(self, title, new_title=None, new_content=None):
+        self.b_edit(title, new_title, new_content)
         ref_document = self.collection.document(title)
         document = ref_document.get()
         updated_fields = []
@@ -73,3 +79,6 @@ class FirestoreAdapter(BaseAdapter):
             notes,
             {'num_pages': num_pages},
         )
+
+    def delete(self, title: str):
+        self.b_delete(title)
