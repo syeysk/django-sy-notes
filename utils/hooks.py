@@ -4,13 +4,17 @@ from django.contrib.auth.models import AnonymousUser
 from django_sy_framework.linker.utils import link_instance_from_request
 from note.models import Note, NoteStorageServiceModel
 from utils.constants import (
+    API,
     BEFORE_CREATE,
+    BEFORE_DELETE_GETTING_ADAPTER,
+    BEFORE_DELETE,
     BEFORE_UPDATE,
     BEFORE_UPDATE_GETTING_ADAPTER,
     BEFORE_CREATE_GETTING_ADAPTER,
     BEFORE_OPEN_CREATE_PAGE,
     BEFORE_OPEN_VIEW_PAGE,
     CREATED,
+    DELETED,
     UPDATED,
     WEB,
 )
@@ -25,6 +29,9 @@ HOOK_METHOD_NAMES = {
     BEFORE_UPDATE_GETTING_ADAPTER: 'before_update_getting_adapter',
     BEFORE_UPDATE: 'before_update',
     UPDATED: 'updated',
+    BEFORE_DELETE_GETTING_ADAPTER: 'before_delete_getting_adapter',
+    BEFORE_DELETE: 'before_delete',
+    DELETED: 'deleted',
 }
 
 
@@ -81,16 +88,23 @@ class AccessHook:
                 meta.has_access_to_edit = False
 
     def before_create(self, context, meta):
-        if context == WEB:
+        if context in (WEB, API):
             if not self.has_access_to_storage(meta.request, meta.adapter.storage):
                 raise PermissionDenied('Нет прав для создания заметки в базе другого пользователя')
 
     def before_update(self, context, meta):
-        if context == WEB:
+        if context in (WEB, API):
             if not self.has_access_to_storage(meta.request, meta.adapter.storage):
                 raise PermissionDenied('Нет прав для редактирования заметки в базе другого пользователя')
             elif not self.has_access_to_note(meta.request, meta):
                 raise PermissionDenied('Нет прав для редактирования заметки другого пользователя')
+
+    def before_delete(self, context, meta):
+        if context in (WEB, API):
+            if not self.has_access_to_storage(meta.request, meta.adapter.storage):
+                raise PermissionDenied('Нет прав для удаления заметки в базе другого пользователя')
+            elif not self.has_access_to_note(meta.request, meta):
+                raise PermissionDenied('Нет прав для удаления заметки другого пользователя')
 
 
 def note_hook(lifecycle, context, meta):

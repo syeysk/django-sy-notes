@@ -19,6 +19,20 @@ from note.serializers_api import (
     NoteSearchViewSerializer,
     NoteSearchResponseSerializer,
 )
+from utils.constants import (
+    API,
+    BEFORE_CREATE,
+    BEFORE_CREATE_GETTING_ADAPTER,
+    BEFORE_DELETE_GETTING_ADAPTER,
+    BEFORE_DELETE,
+    BEFORE_UPDATE,
+    BEFORE_UPDATE_GETTING_ADAPTER,
+    CREATED,
+    DELETED,
+    UPDATED,
+)
+from utils.hooks import note_hook
+from utils.hook_meta import CreatedNote, DeletedNote, UpdatedNote
 
 source_parametr = OpenApiParameter(
     name='source',
@@ -131,6 +145,8 @@ class NoteView(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
             note_data['source'] = source
+            if note_data['user']:
+                note_data['user'] = note_data['user'].username
 
         return Response(status=status.HTTP_200_OK, data=note_data)
 
@@ -154,12 +170,19 @@ class NoteView(APIView):
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        with get_storage_service(request.GET.get('source')) as (uploader, source):
-            if uploader.get(title=title):
+        source = request.GET.get('source')
+        meta = CreatedNote(source, title, data['content'], request, None)
+        note_hook(BEFORE_CREATE_GETTING_ADAPTER, API, meta)
+        with get_storage_service(source) as (uploader, source):
+            meta.adapter = uploader
+            meta.source = source
+            if uploader.get(title=meta.title):
                 data = {'detail': 'Заметка с таким названием уже существует'}
                 return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=data)
 
-            uploader.add(title, data['content'], request.user)
+            note_hook(BEFORE_CREATE, API, meta)
+            uploader.add(meta.title, meta.content, request.user)
+            note_hook(CREATED, API, meta)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -190,15 +213,24 @@ class NoteView(APIView):
         elif new_title and new_title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'new_title': [ERROR_NAME_MESSAGE]})
 
-        with get_storage_service(request.GET.get('source')) as (uploader, _):
-            if not uploader.get(title=title):
+        source = request.GET.get('source')
+        meta = UpdatedNote(source, title, data.get('new_title'), data.get('new_content'), request, None, None)
+        note_hook(BEFORE_UPDATE_GETTING_ADAPTER, API, meta)
+        with get_storage_service(source) as (uploader, _):
+            note = uploader.get(title=title)
+            if not note:
                 return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
-            if new_title and new_title != title and uploader.get(title=new_title):
+            if meta.new_title and meta.new_title != meta.title and uploader.get(title=meta.new_title):
                 response_data = {'detail': 'Заметка с таким названием уже существует'}
                 return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=response_data)
 
+            meta.adapter = uploader
+            meta.source = source
+            meta.user = note['user']
+            note_hook(BEFORE_UPDATE, API, meta)
             uploader.edit(title, new_title, data.get('new_content'))
+            note_hook(UPDATED, API, meta)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -217,11 +249,19 @@ class NoteView(APIView):
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        with get_storage_service(request.GET.get('source')) as (uploader, _):
-            note_data = uploader.get(title=title)
-            if not note_data:
+        source = request.GET.get('source')
+        meta = DeletedNote(source, title, request, None, None)
+        note_hook(BEFORE_DELETE_GETTING_ADAPTER, API, meta)
+        with get_storage_service(meta.source) as (uploader, source):
+            note = uploader.get(title=meta.title)
+            if not note:
                 return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'Заметка не найдена'})
 
-            uploader.delete(title)
+            meta.adapter = uploader
+            meta.source = source
+            meta.user = note['user']
+            note_hook(BEFORE_DELETE, API, meta)
+            uploader.delete(meta.title)
+            note_hook(DELETED, API, meta)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

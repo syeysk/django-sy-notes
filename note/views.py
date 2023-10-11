@@ -1,14 +1,12 @@
 import datetime
 import zipfile
 import os
-from dataclasses import dataclass
 from io import BytesIO
 from urllib.parse import unquote
 
 import yaml
 import requests
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.files.images import ImageFile
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
@@ -48,6 +46,7 @@ from utils.constants import (
     WEB,
 )
 from utils.hooks import note_hook
+from utils.hook_meta import CreatedNote, CreatePageNote, ViewPageNote, UpdatedNote
 
 
 def separate_yaml(content):
@@ -67,42 +66,6 @@ def separate_yaml(content):
         content = content[yaml_length + 4:].lstrip()
 
     return data_yaml, content
-
-
-@dataclass
-class CreatedNote:
-    source: str
-    title: str
-    content: str
-    request: 'django.http.HttpRequest' = None
-    adapter: 'note.adapters.base_adapter.BaseAdapter' = None
-
-
-@dataclass
-class UpdatedNote:
-    source: str
-    title: str
-    new_title: str
-    new_content: str
-    request: 'django.http.HttpRequest' = None
-    adapter: 'note.adapters.base_adapter.BaseAdapter' = None
-    user: get_user_model() = None
-
-
-@dataclass
-class CreatePageNote:
-    source: str
-    request: 'django.http.HttpRequest' = None
-
-
-@dataclass
-class ViewPageNote:
-    source: str
-    title: str
-    content: str
-    request: 'django.http.HttpRequest' = None
-    has_access_to_edit: bool = True
-    user: get_user_model() = None
 
 
 @extend_schema(
