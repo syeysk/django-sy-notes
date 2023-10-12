@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_sy_framework.custom_auth.context_processors.extern_auth_services',
+                'django_sy_framework.base.context_processors.settings_variables',
             ],
         },
     },
