@@ -2,6 +2,8 @@ from drf_spectacular.utils import extend_schema_field
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
+from note.models import Note
+
 
 class NoteSearchViewSerializer(serializers.Serializer):
     FIELD_ALL = 'all'
@@ -59,15 +61,19 @@ class NoteAddViewSerializer(serializers.Serializer):
         return 'содержимое заметки'
 
 
-class NoteEditViewSerializer(serializers.Serializer):
-    new_title = serializers.CharField(max_length=255, required=False, help_text='Новое имя заметки')
-    new_content = serializers.CharField(max_length=20000, required=False, help_text='Новое содержимое заметки')
+class NoteEditViewSerializer(serializers.ModelSerializer):
+    new_title = serializers.CharField(source='title', required=False, help_text='Новое имя заметки')
+    new_content = serializers.CharField(source='content', required=False, help_text='Новое содержимое заметки')
 
     def validate(self, data):
-        if not data.get('new_title') and not data.get('new_content'):
+        if not data.get('title') and not data.get('content'):
             raise serializers.ValidationError("required new_title or new_content, or both")
 
         return data
+
+    class Meta:
+        model = Note
+        fields = ['new_title', 'new_content']
 
 
 class NoteResponseSerializer(serializers.Serializer):
@@ -87,7 +93,7 @@ class NoteSearchNoteResponseSerializer(serializers.Serializer):
     content = serializers.CharField(
         max_length=20000, help_text='Содержимое заметки. Наличие поля зависит от параметра `fields`',
     )
-    title = serializers.CharField(max_length=255, help_text='Имя заметки. Наличие поля зависит от параметра `fields`')
+    title = serializers.CharField(max_length=240, help_text='Имя заметки. Наличие поля зависит от параметра `fields`')
     url = serializers.CharField(max_length=100, help_text='URL к заметке в базе')
 
 

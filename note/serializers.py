@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from note.models import NoteStorageServiceModel
+from note.models import NoteStorageServiceModel, Note
 
 ERROR_NAME_MESSAGE = (
     'Имена, начинающиеся с ".", зарезервированы для автоматизированного использования'
@@ -8,26 +8,28 @@ ERROR_NAME_MESSAGE = (
 )
 
 
-class NoteEditViewSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=255, help_text='Новое имя заметки')
-    content = serializers.CharField(max_length=20000, help_text='Новое содержимое заметки')
-
+class NoteEditViewSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if value.startswith('.'):
             raise serializers.ValidationError([ERROR_NAME_MESSAGE])
 
         return value
 
+    class Meta:
+        model = Note
+        fields = ['title', 'content']
 
-class NoteCreateViewSerializer(serializers.Serializer):
+
+class NoteCreateViewSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if value.startswith('.'):
             raise serializers.ValidationError([ERROR_NAME_MESSAGE])
 
         return value
 
-    title = serializers.CharField(max_length=255, help_text='Название заметки')
-    content = serializers.CharField(max_length=20000, help_text='Содержимое заметки')
+    class Meta:
+        model = Note
+        fields = ['title', 'content']
 
 
 class NoteStorageServiceSerializer(serializers.ModelSerializer):

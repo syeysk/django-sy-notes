@@ -207,14 +207,15 @@ class NoteView(APIView):
         data = serializer.validated_data
 
         title = unquote(title)
-        new_title = data.get('new_title')
+        new_title = data.get('title')
+        new_content = data.get('content')
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
         elif new_title and new_title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'new_title': [ERROR_NAME_MESSAGE]})
 
         source = request.GET.get('source')
-        meta = UpdatedNote(source, title, data.get('new_title'), data.get('new_content'), request, None, None)
+        meta = UpdatedNote(source, title, new_title, new_content, request, None, None)
         note_hook(BEFORE_UPDATE_GETTING_ADAPTER, API, meta)
         with get_storage_service(source) as (uploader, _):
             note = uploader.get(title=title)
@@ -229,7 +230,7 @@ class NoteView(APIView):
             meta.source = source
             meta.user = note['user']
             note_hook(BEFORE_UPDATE, API, meta)
-            uploader.edit(title, new_title, data.get('new_content'))
+            uploader.edit(title, new_title, new_content)
             note_hook(UPDATED, API, meta)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

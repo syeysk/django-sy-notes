@@ -8,6 +8,7 @@ from django.shortcuts import resolve_url
 
 from django_sy_framework.linker.models import Linker
 from note.adapters import get_service_names
+from note.validators import FilenameValidator
 
 
 def prepare_to_search(value):
@@ -21,10 +22,16 @@ class Note(models.Model):
         on_delete=models.CASCADE,
         related_name='notes',
     )
-    title = models.CharField(verbose_name='Заголовок', max_length=255, null=False, db_index=True)
+    title = models.CharField(
+        verbose_name='Заголовок',
+        max_length=240,
+        null=False,
+        db_index=True,
+        validators=(FilenameValidator(),),
+    )
     content = models.TextField(verbose_name='Текст', null=False)
     search_content = models.TextField(verbose_name='Текст для поиска', null=False)
-    search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=255, null=False, db_index=True)
+    search_title = models.TextField(verbose_name='Заголовок для поиска', max_length=240, null=False, db_index=True)
     linker = GenericRelation(Linker, related_query_name='note')
     user = models.ForeignKey(get_user_model(), null=True, on_delete=models.CASCADE)
 
@@ -80,6 +87,7 @@ class NoteStorageServiceModel(models.Model):
         unique=True,
         db_index=True,
         help_text='Используется для указания базы при поиске, редактировании и отображении заметок',
+        validators=(FilenameValidator(),),
     )
     uuid = models.UUIDField(null=False, blank=False, unique=True, default=uuid.uuid4)
 
