@@ -9,7 +9,6 @@ ERROR_NAME_MESSAGE = (
 
 
 class NoteEditViewSerializer(serializers.Serializer):
-    source = serializers.CharField(max_length=30, help_text='Название базы')
     title = serializers.CharField(max_length=255, help_text='Новое имя заметки')
     content = serializers.CharField(max_length=20000, help_text='Новое содержимое заметки')
 
@@ -27,7 +26,6 @@ class NoteCreateViewSerializer(serializers.Serializer):
 
         return value
 
-    source = serializers.CharField(max_length=30, help_text='Название базы')
     title = serializers.CharField(max_length=255, help_text='Название заметки')
     content = serializers.CharField(max_length=20000, help_text='Содержимое заметки')
 

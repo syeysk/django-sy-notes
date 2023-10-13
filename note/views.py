@@ -146,7 +146,11 @@ def safe_markdown(content, source):
     content_html = None
     content_yaml, content_md = separate_yaml(content)
     content_md = content_md.replace('\r\n', '\n')
-    config = {'utils.md_extensions.apply_source:ApplySourceExtension': {'source': source}}
+    config = {
+        'utils.md_extensions.apply_source:ApplySourceExtension': {'source': source},
+        'utils.md_extensions.wiki_links:WikiLinksExtension': {'source': source},
+        'utils.md_extensions.tags_like_links:TagsLikeLinksExtension': {'source': source},
+    }
     try:
         content_html = markdownify(content_md, dynamic_extension_config=config)
     except Exception as error:
@@ -159,8 +163,7 @@ def safe_markdown(content, source):
 
 class NoteView(View):
     @staticmethod
-    def get(request, quoted_title=None):
-        source = request.GET.get('source') or request.COOKIES.get('source')
+    def get(request, source, quoted_title=None):
         if quoted_title is None:
             if not request.user.is_authenticated:
                 return render(request, '401.html')
@@ -203,7 +206,7 @@ class NoteEditView(APIView):
                     image = ImageNote(note=note, image=ImageFile(uploaded_image, uploaded_image.name))
                     image.save()
 
-    def put(self, request, quoted_title):
+    def put(self, request, source, quoted_title):
         """
         Метод редактирования существующей заметки.
 
@@ -220,7 +223,7 @@ class NoteEditView(APIView):
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
-        meta = UpdatedNote(data['source'], title, data.get('title'), data.get('content'), request, None, None)
+        meta = UpdatedNote(source, title, data.get('title'), data.get('content'), request, None, None)
         note_hook(BEFORE_UPDATE_GETTING_ADAPTER, WEB, meta)
         with get_storage_service(meta.source) as (uploader, source):
             note = uploader.get(title=title)
@@ -245,7 +248,7 @@ class NoteEditView(APIView):
             data={'updated_fields': updated_fields, 'content_html': content_html, 'error_message': error_message},
         )
 
-    def post(self, request):
+    def post(self, request, source):
         """Метод создания новой заметки"""
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -254,7 +257,7 @@ class NoteEditView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        meta = CreatedNote(data['source'], data['title'], data['content'], request, None)
+        meta = CreatedNote(source, data['title'], data['content'], request, None)
         note_hook(BEFORE_CREATE_GETTING_ADAPTER, WEB, meta)
         with get_storage_service(meta.source) as (uploader, source):
             meta.adapter = uploader

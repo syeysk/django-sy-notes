@@ -15,6 +15,7 @@
 								else search.delete(name);
 						}
             window.location.search = search.toString();
+            console.log(window.location)
         }
 		</script>
 
@@ -49,14 +50,14 @@
 
     {% if request.user.is_authenticated %}
         <div style="text-align: right;">
-            <a href="{% url 'note_create' %}"><input type="button" value="Новая заметка" class="btn btn-primary"></a>
+            <a href="{% url 'note_create' source %}"><input type="button" value="Новая заметка" class="btn btn-primary"></a>
 		    </div>
     {% endif %}
     <br>
     <div class="filter-block">
         <div class="mb-3 form-group" id="source-group">
   					<div class="form-floating">
-				        <select onchange="document.cookie='source='+this.value; window.location.reload();" class="form-select" id="source-field">
+				        <select onchange="document.cookie='source='+this.value; set_search([['source', null]]);" class="form-select" id="source-field">
 						        {% for source_dict in sources %}
 						    	    	<option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
 			        			{% endfor %}
@@ -80,7 +81,7 @@
     {{ error }}
 
 		{% for note in notes %}
-        <h3 class="note_title"><a href="{% url 'note_editor' note.title %}?source={{source}}">{{ note.title }}</a></h3>
+        <h3 class="note_title"><a href="{% url 'note_editor2' source note.title %}">{{ note.title }}</a></h3>
 				<div class="note_body">{{ note.html }}</div>
 		{% endfor %}
 

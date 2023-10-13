@@ -1,4 +1,4 @@
-from urllib.parse import urlparse, parse_qs, quote
+from urllib.parse import urlparse, parse_qs
 
 from django.shortcuts import resolve_url
 from markdown.extensions import Extension
@@ -39,10 +39,7 @@ class ObsidianLinksTreeprocessor(Treeprocessor):
         )
         for link, title, source in links:
             if source in existed_sources:
-                new_url = '{}?source={}'.format(
-                    resolve_url('note_editor', quoted_title=title[:-3]),
-                    quote(source),
-                )
+                new_url = resolve_url('note_editor2', source=source, quoted_title=title[:-3])
                 link.set('href', new_url)
 
 

@@ -33,11 +33,11 @@ class Note(models.Model):
 
     @property
     def url(self):
-        return '{}{}?source={}'.format(settings.SITE_URL, resolve_url('note_editor', self.title), self.storage.source)
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor2', self.storage.source, self.title))
 
     @property
     def url_new(self):
-        return '{}{}'.format(settings.SITE_URL, resolve_url('note_create'))
+        return '{}{}'.format(settings.SITE_URL, resolve_url('note_create', settings.DEFAULT_SOURCE_CODE))
 
     class Meta:
         db_table = 'app_note_note'

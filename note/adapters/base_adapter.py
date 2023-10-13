@@ -17,7 +17,9 @@ class BaseAdapter:
 
     def get_note_url(self, title):
         """Return a note URL by `title`"""
-        return '{}{}'.format(settings.SITE_URL, resolve_url('note_editor', quoted_title=title))
+        return '{}{}'.format(
+            settings.SITE_URL, resolve_url('note_editor2', source=self.storage.source, quoted_title=title),
+        )
 
     def get(self, title: str) -> dict | None:
         """Return a note from a storage by `title`.

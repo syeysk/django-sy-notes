@@ -9,10 +9,14 @@ TAG_PATTERN = rf'(?:^|[\s])(#[a-zA-Zа-яА-ЯёЁ][a-zA-Z0-9а-яА-ЯёЁ_-]*)
 
 
 class TagsLikeLinksInlineProcessor(Preprocessor):
+    def __init__(self, source):
+        super().__init__(md=None)
+        self.source = source
+
     def build_link(self, match):
         tag = match.group(1)
         quoted_tag = quote(tag)
-        return f'[{tag}]({self.url}?s={quoted_tag}) '
+        return f'[{tag}]({self.url}?source={self.source}&s={quoted_tag}) '
 
     def run(self, lines):
         self.url = resolve_url('note_list')
@@ -25,6 +29,10 @@ class TagsLikeLinksInlineProcessor(Preprocessor):
 
 
 class TagsLikeLinksExtension(Extension):
+    def __init__(self, **kwargs):
+        self.config = {'source': ['', 'knowledge database']}
+        super().__init__(**kwargs)
+
     def extendMarkdown(self, md):
         """
         Text
@@ -36,4 +44,5 @@ class TagsLikeLinksExtension(Extension):
         <a href="/note/?s=test">#test</a>
         ```
         """
-        md.preprocessors.register(TagsLikeLinksInlineProcessor(), 'tags_like_links', 1)
+        source = self.getConfig('source')
+        md.preprocessors.register(TagsLikeLinksInlineProcessor(source), 'tags_like_links', 1)

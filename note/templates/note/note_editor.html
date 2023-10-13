@@ -6,10 +6,19 @@
 {% block page_title %} Заметка | {% if note %}{{ note.title }}{% else %}Новая заметка{% endif %}{% endblock %}
 
 {% block start_of_head %}
+    <script>
+        var URL_SAVE_NOTE = '/edit';
+        var HAS_ACCESS_TO_EDIT = {% if has_access_to_edit %}true{% else %}false{% endif %};
+
+        var parts = location.href.split('/');
+        if (parts.at(-2) != '{{source}}') {
+            parts[parts.length - 2] = '{{source}}';
+						history.pushState(null, null, parts.join('/'));
+				}
+    </script>
     {{ block.super }}
     <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
-    <!--<link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">-->
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/markdown/markdown.js' %}"></script>
     <script src="{% static 'base/extern/codemirror-5.65.14/mode/python/python.js' %}"></script>
     <script src="{% static 'base/code-mirror-component.js' %}"></script>
@@ -35,11 +44,6 @@
     </style>
 
     <script>
-        var URL_SAVE_NOTE = '/edit';
-        HAS_ACCESS_TO_EDIT = {% if has_access_to_edit %}true{% else %}false{% endif %};
-    </script>
-
-    <script>
         NoteViewerComponent = {
             props: ['content_html'],
             template: `<div v-html="content_html"></div>`,
@@ -56,7 +60,6 @@
             components: {CodeMirrorComponent},
             template: `
                 <form @keydown="save_by_button">
-                    <input name="source" type="hidden" value="{{ source }}">
                     <div class="form-group" id="title-group">
                         <div class="form-floating">
                             <input name="title" v-model="mTitle" style="width:99%;border-bottom-left-radius: 0;border-bottom-right-radius: 0;" class="form-control" placeholder="Заголовок" id="title-field">
@@ -209,7 +212,6 @@
                     let form_data = new FormData();
                     form_data.append('title', title);
                     form_data.append('content', content);
-                    form_data.append('source', form.source.value);
                     for (hashed_name of images.keys()) {
                         let image = images.get(hashed_name);
                         form_data.append('images', image, hashed_name);

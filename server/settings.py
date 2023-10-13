@@ -162,7 +162,6 @@ MARKDOWNIFY = {
             'utils.md_extensions.wiki_links:WikiLinksExtension',
             'utils.md_extensions.internal_images:InternalImagesExtension',
             'utils.md_extensions.tags_like_links:TagsLikeLinksExtension',
-            'utils.md_extensions.apply_source:ApplySourceExtension',
             'md_mermaid',
         ],
     }
