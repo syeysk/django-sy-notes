@@ -1,5 +1,6 @@
 from urllib.parse import urlparse, parse_qs
 
+from django.conf import settings
 from django.shortcuts import resolve_url
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
@@ -27,6 +28,8 @@ def collect_link_elements(root):
                 if vault and file:
                     links.append((child, file[0], vault[0]))
                     sources.add(vault[0])
+            elif url.hostname and url.hostname not in settings.ALLOWED_HOSTS:
+                child.set('rel', 'ugc')
 
     return links, sources
 
