@@ -279,12 +279,12 @@ class NoteEditView(APIView):
 
 
 class NoteListView(View):
-    def get(self, request):
+    def get(self, request, source=None):
         search_string = request.GET.get('s')
         page_number = request.GET.get('p', '1')
         page_number = int(page_number) if page_number.isdecimal() else 1
         count_on_page = 20
-        source = request.GET.get('source') or request.COOKIES.get('source')
+        source = source or request.COOKIES.get('source')
 
         context = {
             'error': '',

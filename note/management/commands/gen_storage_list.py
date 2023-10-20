@@ -10,7 +10,6 @@ class Command(BaseCommand):
     help = 'Generate note, containing list of storages'
 
     def handle(self, *args, **options):
-        url = resolve_url('note_list')
         storages = (
             NoteStorageServiceModel.objects
             .filter(service=settings.DEFAULT_SOURCE_SERVICE_NAME)
@@ -19,7 +18,8 @@ class Command(BaseCommand):
         md_lines = ['Список баз знаний:', '']
         for storage in storages:
             source, description = storage
-            md_lines.append(f'- [{description}]({url}?source={source})')
+            url = resolve_url('note_list_db', source)
+            md_lines.append(f'- [{description}]({url})')
 
         with get_storage_service() as (adapter, _):
             title = '.Список баз знаний'

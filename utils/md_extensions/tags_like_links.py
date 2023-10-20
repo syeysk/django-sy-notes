@@ -16,10 +16,10 @@ class TagsLikeLinksInlineProcessor(Preprocessor):
     def build_link(self, match):
         tag = match.group(1)
         quoted_tag = quote(tag)
-        return f'[{tag}]({self.url}?source={self.source}&s={quoted_tag}) '
+        return f'[{tag}]({self.url}?s={quoted_tag}) '
 
     def run(self, lines):
-        self.url = resolve_url('note_list')
+        self.url = resolve_url('note_list_db', self.source)
         new_lines = []
         for line in lines:
             line = re.sub(TAG_PATTERN, self.build_link, line)

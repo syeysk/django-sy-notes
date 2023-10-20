@@ -15,7 +15,6 @@
 								else search.delete(name);
 						}
             window.location.search = search.toString();
-            console.log(window.location)
         }
 		</script>
 
@@ -57,9 +56,9 @@
     <div class="filter-block">
         <div class="mb-3 form-group" id="source-group">
   					<div class="form-floating">
-				        <select onchange="document.cookie='source='+this.value; set_search([['source', null]]);" class="form-select" id="source-field">
+				        <select onchange="document.cookie='source='+this.value; window.location.href=this.value;" class="form-select" id="source-field">
 						        {% for source_dict in sources %}
-						    	    	<option value="{{ source_dict.source }}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
+						    	    	<option value="{% url 'note_list_db' source_dict.source %}" {% if source_dict.source == source %}selected{% endif %}>{{ source_dict.description }}</option>
 			        			{% endfor %}
 		    		    </select>
   							<label for="source-field">База знаний</label>
@@ -87,17 +86,17 @@
 
     <p class="paginator">
 		  	{% if current_page > 1 %}
-    		  	<a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p=1">1</a>
+    		  	<a href="{% url 'note_list_db' source %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p=1">1</a>
 		  	{% endif %}
 			  {% if current_page > 2 %}
-    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:-1 }}"> << </a>
+    			  <a href="{% url 'note_list_db' source %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:-1 }}"> << </a>
 		  	{% endif %}
 			  <span>{{ current_page }}</span>
 			  {% if current_page < last_page|add:-1 %}
-    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:1 }}"> >> </a>
+    			  <a href="{% url 'note_list_db' source %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ current_page|add:1 }}"> >> </a>
 		  	{% endif %}
 			  {% if current_page < last_page %}
-    			  <a href="{% url 'note_list' %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
+    			  <a href="{% url 'note_list_db' source %}?{% if 's' in request.GET %}s={{request.GET.s|urlencode}}&{% endif %}p={{ last_page }}">{{ last_page }}</a>
 		  	{% endif %}
 		</p>
 
