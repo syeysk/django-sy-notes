@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from django.contrib.auth import get_user_model
 
@@ -10,6 +10,7 @@ class CreatedNote:
     content: str
     request: 'django.http.HttpRequest' = None
     adapter: 'note.adapters.base_adapter.BaseAdapter' = None
+    errors: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -21,6 +22,7 @@ class UpdatedNote:
     request: 'django.http.HttpRequest' = None
     adapter: 'note.adapters.base_adapter.BaseAdapter' = None
     user: get_user_model() = None
+    errors: dict = field(default_factory=dict)
 
 
 @dataclass

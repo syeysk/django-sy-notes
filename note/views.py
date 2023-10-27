@@ -219,14 +219,13 @@ class NoteEditView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        title = unquote(quoted_title)
-        if title.startswith('.'):
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
-
-        meta = UpdatedNote(source, title, data.get('title'), data.get('content'), request, None, None)
+        meta = UpdatedNote(source, unquote(quoted_title), data.get('title'), data.get('content'), request, None, None)
         note_hook(BEFORE_UPDATE_GETTING_ADAPTER, WEB, meta)
+        if meta.errors:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=meta.errors)
+
         with get_storage_service(meta.source) as (uploader, source):
-            note = uploader.get(title=title)
+            note = uploader.get(title=meta.title)
             if not note:
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -240,7 +239,7 @@ class NoteEditView(APIView):
             note_hook(BEFORE_UPDATE, WEB, meta)
             updated_fields = uploader.edit(meta.title, meta.new_title, meta.new_content)
             note_hook(UPDATED, WEB, meta)
-            self.save_images(meta.source, title, request)
+            self.save_images(meta.source, meta.title, request)
 
         content_html, error_message = safe_markdown(meta.new_content, meta.source)
         return Response(
@@ -259,6 +258,9 @@ class NoteEditView(APIView):
 
         meta = CreatedNote(source, data['title'], data['content'], request, None)
         note_hook(BEFORE_CREATE_GETTING_ADAPTER, WEB, meta)
+        if meta.errors:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=meta.errors)
+
         with get_storage_service(meta.source) as (uploader, source):
             meta.adapter = uploader
             meta.source = source

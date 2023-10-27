@@ -9,24 +9,12 @@ ERROR_NAME_MESSAGE = (
 
 
 class NoteEditViewSerializer(serializers.ModelSerializer):
-    def validate_title(self, value):
-        if value.startswith('.'):
-            raise serializers.ValidationError([ERROR_NAME_MESSAGE])
-
-        return value
-
     class Meta:
         model = Note
         fields = ['title', 'content']
 
 
 class NoteCreateViewSerializer(serializers.ModelSerializer):
-    def validate_title(self, value):
-        if value.startswith('.'):
-            raise serializers.ValidationError([ERROR_NAME_MESSAGE])
-
-        return value
-
     class Meta:
         model = Note
         fields = ['title', 'content']

@@ -107,10 +107,38 @@ class AccessHook:
                 raise PermissionDenied('Нет прав для удаления заметки другого пользователя')
 
 
+class HiddenFileHook:
+    ERROR_NAME_MESSAGE = (
+        'Имена, начинающиеся с ".", зарезервированы для автоматизированного использования'
+        ' и недоступны для создания/изменения'
+    )
+
+    def check_no_access(self, title):
+        return title.startswith('.')
+
+    def before_open_view_page(self, context, meta):
+        if context == WEB:
+            meta.has_access_to_edit = not self.check_no_access(meta.title)
+
+    def before_update_getting_adapter(self, context, meta):
+        if context == WEB and (self.check_no_access(meta.title) or self.check_no_access(meta.new_title)):
+            meta.errors['title'] = [self.ERROR_NAME_MESSAGE]
+
+    def before_create_getting_adapter(self, context, meta):
+        if context == WEB and self.check_no_access(meta.title):
+            meta.errors['title'] = [self.ERROR_NAME_MESSAGE]
+
+
 def note_hook(lifecycle, context, meta):
-    hook_classes = [AccessHook, LinkerHook]
+    hook_classes = [HiddenFileHook, AccessHook, LinkerHook]
     hook_method_name = HOOK_METHOD_NAMES[lifecycle]
     for hook_class in hook_classes:
         if hasattr(hook_class, hook_method_name):
             hook = hook_class()
             getattr(hook, hook_method_name)(context, meta)
+            success = (
+                getattr(meta, 'has_access_to_edit', True) and not getattr(meta, 'errors', False)
+            )
+            if not success:
+                break
+
