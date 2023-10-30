@@ -166,7 +166,7 @@ class NoteView(View):
     def get(request, source, quoted_title=None):
         if quoted_title is None:
             if not request.user.is_authenticated:
-                return render(request, '401.html')
+                return render(request, '401.html', status=status.HTTP_401_UNAUTHORIZED)
 
             meta = CreatePageNote(source, request)
             note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
