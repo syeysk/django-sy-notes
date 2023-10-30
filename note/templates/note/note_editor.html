@@ -6,7 +6,8 @@
 {% block description %}{% if 'metaDescription' in content_yaml %}{{ content_yaml.metaDescription }}{% endif %}{% endblock %}
 
 {% block title %}{% if note %}{{ note.title }}{% endif %}{% endblock %}
-{% block page_title %} Заметка | {% if note %}{{ note.title }}{% else %}Новая заметка{% endif %}{% endblock %}
+{% block site_title %}Заметка{% endblock %}
+{% block page_title %}{% if note %}{{ note.title }}{% else %}Новая заметка{% endif %}{% endblock %}
 
 {% block start_of_head %}
     {{ block.super }}
