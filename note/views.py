@@ -144,8 +144,8 @@ def note_hook_old(request):  # TODO: метод хука планируется 
 def safe_markdown(content, source):
     error_message = None
     content_html = None
+    content = content.replace('\r\n', '\n')
     content_yaml, content_md = separate_yaml(content)
-    content_md = content_md.replace('\r\n', '\n')
     config = {
         'utils.md_extensions.apply_source:ApplySourceExtension': {'source': source},
         'utils.md_extensions.wiki_links:WikiLinksExtension': {'source': source},
@@ -158,7 +158,7 @@ def safe_markdown(content, source):
         error_message = 'Заметка содержит синтаксическую ошибку'
         logger.error('Ошибка парсинга заметки: %s' % error)
 
-    return content_html, error_message
+    return content_yaml, content_html, error_message
 
 
 class NoteView(View):
@@ -170,7 +170,7 @@ class NoteView(View):
 
             meta = CreatePageNote(source, request)
             note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
-            context = {'note': None, 'source': meta.source, 'has_access_to_edit': True}
+            context = {'note': None, 'content_yaml': {}, 'source': meta.source, 'has_access_to_edit': True}
             return render(request, 'note/note_editor.html', context)
 
         with get_storage_service(source) as (uploader, source):
@@ -180,8 +180,8 @@ class NoteView(View):
             raise Http404('Заметка не найдена')
 
         meta = ViewPageNote(source, note['title'], note['content'], request, True, note['user'])
-        content_html, error_message = safe_markdown(meta.content, meta.source)
         note_hook(BEFORE_OPEN_VIEW_PAGE, WEB, meta)
+        content_yaml, content_html, error_message = safe_markdown(meta.content, meta.source)
         context = {
             'note': {
                 'title': meta.title,
@@ -190,6 +190,7 @@ class NoteView(View):
                 'error_message': error_message,
                 'username': note['user'].username if note['user'] else None
             },
+            'content_yaml': content_yaml,
             'source': meta.source,
             'has_access_to_edit': meta.has_access_to_edit,
         }
@@ -219,7 +220,8 @@ class NoteEditView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        meta = UpdatedNote(source, unquote(quoted_title), data.get('title'), data.get('content'), request, None, None)
+        content = data.get('content').replace('\r\n', '\n')
+        meta = UpdatedNote(source, unquote(quoted_title), data.get('title'), content, request, None, None)
         note_hook(BEFORE_UPDATE_GETTING_ADAPTER, WEB, meta)
         if meta.errors:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=meta.errors)
@@ -241,7 +243,7 @@ class NoteEditView(APIView):
             note_hook(UPDATED, WEB, meta)
             self.save_images(meta.source, meta.title, request)
 
-        content_html, error_message = safe_markdown(meta.new_content, meta.source)
+        content_yaml, content_html, error_message = safe_markdown(meta.new_content, meta.source)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': updated_fields, 'content_html': content_html, 'error_message': error_message},
@@ -256,7 +258,8 @@ class NoteEditView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        meta = CreatedNote(source, data['title'], data['content'], request, None)
+        content = data['content'].replace('\r\n', '\n')
+        meta = CreatedNote(source, data['title'], content, request, None)
         note_hook(BEFORE_CREATE_GETTING_ADAPTER, WEB, meta)
         if meta.errors:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=meta.errors)
@@ -273,7 +276,7 @@ class NoteEditView(APIView):
             note_hook(CREATED, WEB, meta)
             self.save_images(meta.source, meta.title, request)
 
-        content_html, error_message = safe_markdown(meta.content, meta.source)
+        content_yaml, content_html, error_message = safe_markdown(meta.content, meta.source)
         return Response(
             status=status.HTTP_200_OK,
             data={'updated_fields': ['title', 'content'], 'content_html': content_html, 'error_message': error_message},
@@ -310,7 +313,7 @@ class NoteListView(View):
                     notes, meta = uploader.get_list(page_number, count_on_page)
 
                 for note in notes:
-                    content_html, error_message = safe_markdown(note['content'][:400], source)
+                    content_yaml, content_html, error_message = safe_markdown(note['content'][:400], source)
                     note['html'] = content_html
 
                 context.update({

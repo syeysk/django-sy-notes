@@ -171,7 +171,8 @@ class NoteView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
 
         source = request.GET.get('source')
-        meta = CreatedNote(source, title, data['content'], request, None)
+        content = data['content'].replace('\r\n', '\n')
+        meta = CreatedNote(source, title, content, request, None)
         note_hook(BEFORE_CREATE_GETTING_ADAPTER, API, meta)
         with get_storage_service(source) as (uploader, source):
             meta.adapter = uploader
@@ -208,7 +209,7 @@ class NoteView(APIView):
 
         title = unquote(title)
         new_title = data.get('title')
-        new_content = data.get('content')
+        new_content = data.get('content', '').replace('\r\n', '\n')
         if title.startswith('.'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'title': [ERROR_NAME_MESSAGE]})
         elif new_title and new_title.startswith('.'):
