@@ -34,7 +34,7 @@
     <div style="text-align: right; color: grey;">
 			  {% if note %}Создано: {{ note.username }}{% endif %} База: {{ source }}
 		</div>
-    <div id="app_note_id">{% if note %}<h1>{{ note.title }}</h1> {{ note.content_html }}{% endif %}</div>
+    <div id="app_note_id">{{ note.content_html }}{% endif %}</div>
 {% endblock %}
 
 {% block end_of_body %}
