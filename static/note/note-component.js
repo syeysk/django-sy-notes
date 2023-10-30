@@ -21,6 +21,7 @@ NoteComponent = {
     `,
     components: {NoteViewerComponent, NoteEditorComponent},
     data() {
+        $('h1')[0].textContent = '';
         let note_object = JSON.parse(document.getElementById('note_json').textContent);
         is_new = !Boolean(note_object);
         return {
