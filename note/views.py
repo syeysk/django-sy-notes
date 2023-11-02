@@ -192,7 +192,7 @@ class NoteView(View):
             },
             'content_yaml': content_yaml,
             'source': meta.source,
-            'has_access_to_edit': meta.has_access_to_edit,
+            'has_access_to_edit': request.user.is_authenticated and meta.has_access_to_edit,
         }
         return render(request, 'note/note_editor.html', context)
 

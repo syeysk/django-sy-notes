@@ -7,6 +7,7 @@
 
 {% block start_of_head %}
     {{ block.super }}
+    <meta name="robots" content="noindex" />
     <script src="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.js' %}"></script>
     <link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/lib/codemirror.css' %}">
     <!--<link rel="stylesheet" href="{% static 'base/extern/codemirror-5.65.14/theme/default.css' %}">-->

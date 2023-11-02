@@ -1,13 +1,17 @@
 {% extends 'template.html' %}
 
 {% block title %}Импорт/экспорт{% endblock %}
-
 {% block page_title %}Импорт/экспорт{% endblock %}
+
+{% block start_of_head %}
+    {{ block.super }}
+    <meta name="robots" content="noindex" />
+{% endblock %}
 
 {% block content %}
     Добавить базу можно на <a href="{% url 'note_service_storage_list' %}">этой странице</a>
 
-    <h3>Копировать заметки из одной базы в другуе</h3>
+    <h3>Копировать заметки из одной базы в другую</h3>
 
     <form>
 			  <input type="hidden" name="command" value="copy-from-to">

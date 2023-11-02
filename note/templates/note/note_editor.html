@@ -11,6 +11,9 @@
 
 {% block start_of_head %}
     {{ block.super }}
+    {% if note %}
+        <meta name="robots" content="{% if note.content|length >= 2100 %}index{% else %}noindex{% endif %}" />
+    {% endif %}
     <script>
         var URL_SAVE_NOTE = '/edit';
         var HAS_ACCESS_TO_EDIT = {% if has_access_to_edit %}true{% else %}false{% endif %};
@@ -30,7 +33,9 @@
 {% endblock %}
 
 {% block content %}
-    {{ note|json_script:'note_json' }}
+    {% if has_access_to_edit %}
+        {{ note|json_script:'note_json' }}
+    {% endif %}
 
     <div style="text-align: right; color: grey;">
 			  {% if note %}Создано: {{ note.username }}{% endif %} База: {{ source }}
@@ -40,26 +45,26 @@
 
 {% block end_of_body %}
     {{ block.super }}
-    <style>
-        .CodeMirror {
-            width: 99%;
-            height: 61vh;
-        }
-    </style>
-
-    <script>
-        NoteViewerComponent = {
-            props: ['content_html'],
-            template: `<div v-html="content_html"></div>`,
-        }
-    </script>
-    <script src="{% static 'note/note-editor-component.js' %}?v=1"></script>
-    <script src="{% static 'note/note-component.js' %}?v=2"></script>
-
-    <script>
-        const { createApp } = Vue;
-        var app_note = createApp(NoteComponent);
-        app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
-        var app_note_list = app_note.mount('#app_note_id');
-    </script>
+    {% if has_access_to_edit %}
+				<style>
+						.CodeMirror {
+								width: 99%;
+								height: 61vh;
+						}
+				</style>
+				<script>
+						NoteViewerComponent = {
+								props: ['content_html'],
+								template: `<div v-html="content_html"></div>`,
+						}
+				</script>
+				<script src="{% static 'note/note-editor-component.js' %}?v=1"></script>
+				<script src="{% static 'note/note-component.js' %}?v=2"></script>
+				<script>
+						const { createApp } = Vue;
+						var app_note = createApp(NoteComponent);
+						app_note.config.compilerOptions.delimiters = [ '[[', ']]' ];
+						var app_note_list = app_note.mount('#app_note_id');
+				</script>
+    {% endif %}
 {% endblock %}
