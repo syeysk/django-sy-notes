@@ -9,7 +9,7 @@ import requests
 from django.conf import settings
 from django.core.files.images import ImageFile
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from drf_spectacular.utils import extend_schema
 from markdownify.templatetags.markdownify import markdownify
@@ -166,7 +166,7 @@ class NoteView(View):
     def get(request, source, quoted_title=None):
         if quoted_title is None:
             if not request.user.is_authenticated:
-                return render(request, '401.html', status=status.HTTP_401_UNAUTHORIZED)
+                return redirect('custom_login_page')
 
             meta = CreatePageNote(source, request)
             note_hook(BEFORE_OPEN_CREATE_PAGE, WEB, meta)
