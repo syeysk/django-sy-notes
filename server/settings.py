@@ -15,6 +15,7 @@ ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
 METRIC_SYSTEM_CODE = env.str('METRIC_SYSTEM_CODE', default='', multiline=True)
+HIDE_METRIC_FOR = env.list('HIDE_METRIC_FOR', default=list())
 ROOT_URLCONF = 'server.urls'
 WSGI_APPLICATION = 'server.wsgi.application'
 STATIC_URL = '/static/'
@@ -141,7 +142,6 @@ EXTERN_AUTH = {
 AUTH_USER_MODEL = 'custom_auth.CustomAuthUser'
 AUTHENTICATION_BACKENDS = ['django_sy_framework.custom_auth.backend.CustomAuthBackend']
 MICROSERVICES_TOKENS = {
-    'to_auth': env('MICROSERVICE_TOKEN_TO_AUTH'),
     'from_platform': env('MICROSERVICE_TOKEN_FROM_PLATFORM'),
 }
 MICROSERVICES_URLS = {
