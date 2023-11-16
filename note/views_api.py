@@ -1,14 +1,12 @@
 from urllib.parse import unquote
 
 from django.conf import settings
-from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django_sy_framework.custom_auth.authentication import TokenAuthentication
-from django_sy_framework.custom_auth.permissions import CheckIsUsernNotAnonymousUser
+from django_sy_framework.token.views import AllowAnyMixin, LoginRequiredMixin
 from note.adapters import get_storage_service
 from note.serializers import ERROR_NAME_MESSAGE
 from note.serializers_api import (
@@ -60,20 +58,7 @@ query_parametr = OpenApiParameter(
 )
 
 
-class Auth(OpenApiAuthenticationExtension):
-    name = 'Token authentication'
-    target_class = TokenAuthentication
-
-    def get_security_definition(self, auto_schema):
-        return {
-            'type': 'http',
-            'name': 'AUTHORIZATION',
-            'in': 'header',
-            'scheme': 'Bearer',
-        }
-
-
-class NoteSearchView(APIView):
+class NoteSearchView(AllowAnyMixin, APIView):
     """Класс метода поиска заметок"""
 
     @extend_schema(
@@ -122,10 +107,8 @@ class NoteSearchView(APIView):
         return Response(status=status.HTTP_200_OK, data=response_data)
 
 
-class NoteView(APIView):
+class NoteView(LoginRequiredMixin, APIView):
     """Класс методов для работы с заметками"""
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [CheckIsUsernNotAnonymousUser]
 
     @extend_schema(
         parameters=[

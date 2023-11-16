@@ -12,35 +12,111 @@
 {% block title %}Ведение заметок{% endblock %}
 {% block page_title %}Главная{% endblock %}
 
+{% block start_of_head %}
+    {{ block.super }}
+    <style>
+    .tiles {
+        display: flex;
+				flex-direction: row;
+				justify-content: space-evenly;
+				flex-wrap: wrap;
+		}
+    .menu-tile {
+        width: 150px;
+        height: 150px;
+        display: inline-block;
+        border-radius: 12px;
+        border: solid 2px darkviolet;
+        text-align: center;
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    .menu-tile a {
+        text-decoration: none;
+    }
+    .menu-tile img {
+        width: 55%;
+    }
+    .tile-body {
+        display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+        height: 70%;
+        font-size: 16pt;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .tile-footer {
+        display: flex;
+				flex-direction: column;
+				justify-content: center;
+        height: 30%;
+        background: darkviolet;
+    }
+    .tile-footer a {
+        color: white;
+    }
+    </style>
+{% endblock %}
+
 {% block content %}
-<p>
-    Сохраняйте свои самые безумные мысли, оформляйте их в фантастические идеи, связывайте друг с другом.
-</p>
+		{% if not request.user.is_authenticated %}
+				<p>
+						Сохраняйте свои самые безумные мысли, оформляйте их в фантастические идеи, связывайте друг с другом.
+				</p>
 
-<p>
-    Сервис полезен для:
-</p>
+				<p>
+						Сервис полезен для:
+				</p>
 
-<ul>
-    <li>Для накопления и структурирования информации при написании статей и книг;</li>
-    <li>Хранения черновых планов, идей, дневников;</li>
-    <li>Ведения рецензий на любимые книги и фильмы;</li>
-    <li>Ведения метаисследований и компиляций научных статей;</li>
-    <li>&lt;свой вариант&gt;.</li>
-</ul>
+				<ul>
+						<li>Для накопления и структурирования информации при написании статей и книг;</li>
+						<li>Хранения черновых планов, идей, дневников;</li>
+						<li>Ведения рецензий на любимые книги и фильмы;</li>
+						<li>Ведения метаисследований и компиляций научных статей;</li>
+						<li>&lt;свой вариант&gt;.</li>
+				</ul>
 
-<h2>Преимущества</h2>
+				<h2>Преимущества</h2>
 
-<ul>
-	  <li><a href="{% url 'note_import_export' %}">Импортируйте</a> заметки из внешней базы: Firestore, Typesense, Github,</li>
-    <li>Либо продолжайте хранить заметки во внешней базе, а просматривайте и редактируйте - здесь.</li>
-    <li>Все базы пользователей составляют единую базу. Это позволяет ссылаться из заметки одной базы на заметку в другой базе</li>
-    <li>Достаточно интегрироваться с данным микросервисом, чтобы автоматически получить интеграцию со множеством внешних сервисов</li>
-</ul>
+				<ul>
+						<li><a href="{% url 'note_import_export' %}">Импортируйте</a> заметки из внешней базы: Firestore, Typesense, Github,</li>
+						<li>Либо продолжайте хранить заметки во внешней базе, а просматривайте и редактируйте - здесь.</li>
+						<li>Все базы пользователей составляют единую базу. Это позволяет ссылаться из заметки одной базы на заметку в другой базе</li>
+						<li>Достаточно интегрироваться с данным микросервисом, чтобы автоматически получить интеграцию со множеством внешних сервисов</li>
+				</ul>
+    {% endif %}
 
-<p>
-  <b>Внимание!</b> Контент, создаваемый на данном веб-сервисе, является доступным, в том числе и незарегистрированным посетителям.
-  Пожалуйста, создавайте только такой контент, который считаете/является допустимым для публикации в открытый доступ.
-</p>
+    <div class="tiles">
+				<div class="menu-tile">
+						<div class="tile-body" style="height: 100%;">
+								<a href="{% url 'note_list' %}">Заметки</a>
+						</div>
+						<!--<div class="tile-footer">
+								<a href="{% url 'note_list' %}?which=my">Мои</a>
+						</div>-->
+				</div>
+				<div class="menu-tile">
+						<a class="tile-body" href="{% url 'note_service_storage_list' %}" style="height: 100%;">
+								<span>Базы знаний</span>
+ 						</a>
+				</div>
+				<div class="menu-tile">
+							<a class="tile-body" href="{% url 'note_create' 'default' %}" rel="nofollow" style="height: 100%;">
+									<span>Добавь</span>
+								  <span style="font-size: 13pt;">свою заметку</span>
+							</a>
+				</div>
+				<div class="menu-tile">
+							<a class="tile-body" href="{% url 'note_import_export' %}" rel="nofollow" style="height: 100%;">
+									<span>Импорт/экспорт</span>
+							</a>
+				</div>
+		</div>
 
+		<p>
+			<b>Внимание!</b> Контент, создаваемый на данном веб-сервисе, является доступным, в том числе и незарегистрированным посетителям.
+			Пожалуйста, создавайте только такой контент, который считаете/является допустимым для публикации в открытый доступ.
+		</p>
 {% endblock %}

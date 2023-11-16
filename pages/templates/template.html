@@ -15,11 +15,7 @@
     <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#5bbad5">
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
 {% endblock %}
-{% block menu_items_microservice %}
-    {% include "base/menu_items_microservice.html" with url_name="note_list" url_title="Все заметки" %}
-    {% include "base/menu_items_microservice.html" with url_name="note_service_storage_list" url_title="Базы знаний" %}
-    {% include "base/menu_items_microservice.html" with url_name="note_import_export" url_title="Импорт/экспорт" %}
-{% endblock %}
+
 {% block source_code_link %}
     <a href="https://github.com/syeysk/django-sy-notes" target="_blank">GitHub</a>
 {% endblock %}
