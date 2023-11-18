@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import environ
+from django_sy_framework.base.settings import *
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -16,13 +17,8 @@ DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
 METRIC_SYSTEM_CODE = env.str('METRIC_SYSTEM_CODE', default='', multiline=True)
 HIDE_METRIC_FOR = env.list('HIDE_METRIC_FOR', default=list())
-ROOT_URLCONF = 'server.urls'
-WSGI_APPLICATION = 'server.wsgi.application'
-STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'static'
 SITE_URL = env('SITE_URL')
-INTERNAL_IPS = ['127.0.0.1']
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
 SALT = env('SALT')
@@ -129,8 +125,6 @@ SPECTACULAR_SETTINGS = {
     'SERVERS': [{'url': f'{SITE_URL}'}],
 }
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 # External auth
 
 EXTERN_AUTH = {
@@ -140,8 +134,6 @@ EXTERN_AUTH = {
     }
 }
 
-AUTH_USER_MODEL = 'custom_auth.CustomAuthUser'
-AUTHENTICATION_BACKENDS = ['django_sy_framework.custom_auth.backend.CustomAuthBackend']
 MICROSERVICES_TOKENS = {
     'from_platform': env('MICROSERVICE_TOKEN_FROM_PLATFORM'),
 }
