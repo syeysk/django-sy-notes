@@ -155,8 +155,9 @@ def safe_markdown(content, source):
         content_html = markdownify(content_md, dynamic_extension_config=config)
     except Exception as error:
         import logging
+        import traceback
         error_message = 'Заметка содержит синтаксическую ошибку'
-        logger.error('Ошибка парсинга заметки: %s' % error)
+        logger.error('Ошибка парсинга заметки: %s \n %s' % (error, ''.join(traceback.format_exception(error))))
 
     return content_yaml, content_html, error_message
 
