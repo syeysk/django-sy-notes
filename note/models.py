@@ -63,8 +63,9 @@ class Note(models.Model):
 
 
 class ImageNote(models.Model):
+    UPLOAD_TO = 'note'
     note = models.ForeignKey(Note, null=False, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='note')
+    image = models.ImageField(upload_to=UPLOAD_TO)
 
 
 class NoteStorageServiceModel(models.Model):

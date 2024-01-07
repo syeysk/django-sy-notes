@@ -204,9 +204,8 @@ class NoteEditView(APIView):
         note = Note.objects.filter(storage__source=source, title=title).first()
         if note:
             for uploaded_image in request.FILES.getlist('images'):
-                if not os.path.exists(f'{settings.MEDIA_ROOT}/note/{uploaded_image.name}'):
-                    image = ImageNote(note=note, image=ImageFile(uploaded_image, uploaded_image.name))
-                    image.save()
+                if not os.path.exists(f'{settings.MEDIA_ROOT}/{ImageNote.UPLOAD_TO}/{uploaded_image.name}'):
+                    note.images.create(image=ImageFile(uploaded_image, uploaded_image.name))
 
     def put(self, request, source, quoted_title):
         """
